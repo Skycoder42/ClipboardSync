@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>IntroPage</class>
+ <widget class="QWizardPage" name="IntroPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="title">
+   <string>Welcome to Clipboard Sync</string>
+  </property>
+  <property name="subTitle">
+   <string>On this page you can select the mode of operation. The wizard will guide you through the setup of clipboard sync.</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>32</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QCommandLinkButton" name="serverButton">
+     <property name="text">
+      <string>Server</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="description">
+      <string>You will open a port on the network and allow others to connect. A Server can be connected to multiple clients, and will synchronize them. The Server can create a client connected to himself, if you wish to sync him aswell. You will always need exactly one server.</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCommandLinkButton" name="clientButton">
+     <property name="text">
+      <string>Client</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="description">
+      <string>The client will connect to a server. Any client can only connect to one server, but the server synchronizes the clients. You can have as many clients as you want, but a client always needs a server. If you wish so, you can use our default server.</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>32</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
