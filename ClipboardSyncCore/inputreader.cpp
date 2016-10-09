@@ -14,6 +14,22 @@ InputReader::InputReader(QObject *parent) :
 	this->start();
 }
 
+InputReader::~InputReader()
+{
+	if(this->isRunning())
+		this->terminate();
+}
+
+bool InputReader::autoExit() const
+{
+	return this->autoQuit;
+}
+
+void InputReader::setAutoExit(bool autoExit)
+{
+	this->autoQuit = autoExit;
+}
+
 void InputReader::run()
 {
 	QFile inFile;
@@ -21,9 +37,9 @@ void InputReader::run()
 
 	forever {
 		auto command = inFile.readLine().trimmed();
-		qDebug(command.constData());
-
-		if(command == "exit")
+		if(this->autoQuit && command == "exit")
 			break;
+		else
+			emit commandReceived(command);
 	}
 }
