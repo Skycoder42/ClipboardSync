@@ -1,0 +1,11 @@
+#include "syncclient.h"
+
+SyncClient::SyncClient(QObject *parent) :
+	QObject(parent),
+	socket(nullptr)
+{}
+
+bool SyncClient::connectSocket(const QString &host, const QString &serverName)
+{
+	this->socket = new QWebSocket(serverName,QWebSocketProtocol::VersionLatest, this);
+}

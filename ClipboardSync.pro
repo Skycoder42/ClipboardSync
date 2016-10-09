@@ -2,6 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += ClipboardSyncWizard \
     ClipboardSyncServer \
-    ClipboardSyncCore
+    ClipboardSyncCore \
+    ClipboardSyncClient
 
 ClipboardSyncServer.depends += ClipboardSyncCore

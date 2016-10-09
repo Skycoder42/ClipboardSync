@@ -51,6 +51,7 @@ void SyncServer::quitServer()
 
 void SyncServer::newConnection()
 {
+	qDebug() << "NEW CONNECTION";
 	auto socket = this->server->nextPendingConnection();
 	connect(socket, &QWebSocket::pong, this, [](quint64 dt, QByteArray load){
 		qDebug() << dt << load;
