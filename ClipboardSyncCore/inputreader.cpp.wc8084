@@ -1,0 +1,13 @@
+#include "inputreader.h"
+#include <QDataStream>
+
+InputReader::InputReader(QObject *parent) :
+	QObject(parent),
+	qIn(nullptr)
+{}
+
+void InputReader::run()
+{
+	QFile inFile;
+	inFile.open(stdin, QIODevice::ReadOnly);
+}
