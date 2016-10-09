@@ -10,11 +10,15 @@ class SyncClient : public QObject
 public:
 	explicit SyncClient(QObject *parent = nullptr);
 
-	bool connectSocket(const QString &host, const QString &serverName, bool secure);
+	bool connectSocket(const QString &host, const QString &clientName, bool secure, const QString &password = QString());
+
+public slots:
+	void closeConnection();
 
 private slots:
 	void connected();
 	void error(QAbstractSocket::SocketError error);
+	void disconnected();
 	void sslErrors(const QList<QSslError> &errors);
 
 private:

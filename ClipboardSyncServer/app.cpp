@@ -19,39 +19,44 @@ int App::exec()
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addPositionalArgument("name", "The name of the server. Must be known by the clients");
-	parser.addPositionalArgument("port", "The server port. Choosen automatically, if not specified.", "[port]");
+	parser.addOption({
+						 {"p", "port"},
+						 "The server <port>. Choosen automatically, if not specified.",
+						 "port",
+						 "0"
+					 });
+	parser.addOption({
+						 {"a", "password", "access-key"},
+						 "The <password> to secure the server. Only clients knowing the key may connect. "
+						 "If not set, no password is required. NOTE: Only use with secure mode, because "
+						 "otherwise the key will be send plain.",
+						 "password"
+					 });
 	parser.addOption({
 						 {"s", "secure"},
 						 "Start the server in secure websocket mode (wss) instead of normal mode (ws)."
 					 });
-
 	parser.addOption({
 						 {"l", "local"},
 						 "Only accept connections from localhost, instead of all connections."
 					 });
 	parser.process(*this);
-
-	auto port = 0;
-	QString name;
-	switch (parser.positionalArguments().size()) {
-	default:
-	case 2:
-		port = parser.positionalArguments()[1].toInt();
-	case 1:
-		name = parser.positionalArguments()[0];
-		break;
-	case 0:
+	if(parser.positionalArguments().size() != 1) {
 		qInfo(qPrintable(parser.helpText()));
 		return EXIT_FAILURE;
 	}
 
-	if(this->init(name, port, parser.isSet("s"), parser.isSet("l")))
+	if(this->init(parser.positionalArguments()[0],
+				  parser.value("p").toInt(),
+				  parser.isSet("s"),
+				  parser.value("a"),
+				  parser.isSet("l")))
 		return QCoreApplication::exec();
 	else
 		return EXIT_FAILURE;
 }
 
-bool App::init(const QString &serverName, int port, bool secure, bool local)
+bool App::init(const QString &serverName, int port, bool secure, const QString &password, bool local)
 {
 	this->console = new Console(this);
 	this->console->installAsMessageHandler();
@@ -60,7 +65,7 @@ bool App::init(const QString &serverName, int port, bool secure, bool local)
 	connect(this, &App::aboutToQuit,
 			this->syncServer, &SyncServer::quitServer);
 
-	return this->syncServer->createServer(serverName, port, secure, local);
+	return this->syncServer->createServer(serverName, port, secure, password, local);
 }
 
 int main(int argc, char *argv[])

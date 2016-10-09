@@ -12,10 +12,12 @@ TEMPLATE = lib
 DEFINES += CLIPBOARDSYNCCORE_LIBRARY
 
 SOURCES += \
-    console.cpp
+    console.cpp \
+    synccore.cpp
 
 HEADERS += clipboardsynccore_global.h \
-    console.h
+    console.h \
+    synccore.h
 
 unix {
     target.path = /usr/lib

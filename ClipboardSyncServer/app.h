@@ -18,7 +18,7 @@ private:
 	Console *console;
 	SyncServer *syncServer;
 
-	bool init(const QString &serverName, int port, bool secure, bool local);
+	bool init(const QString &serverName, int port, bool secure, const QString &password, bool local);
 };
 
 #endif // APP_H

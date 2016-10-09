@@ -13,7 +13,7 @@ public:
 
 	bool createServer(const QString &serverName,
 					  int port,
-					  bool secure,
+					  bool secure, const QString &password,
 					  bool local);
 
 	quint16 port() const;
@@ -26,11 +26,11 @@ private slots:
 
 	void acceptError(QAbstractSocket::SocketError socketError);
 	void serverError(QWebSocketProtocol::CloseCode closeCode);
-	void originAuthenticationRequired(QWebSocketCorsAuthenticator *pAuthenticator);
 	void sslErrors(const QList<QSslError> &errors);
 
 private:
 	QWebSocketServer *server;
+	QString password;
 	QList<ServerClient*> clients;
 };
 

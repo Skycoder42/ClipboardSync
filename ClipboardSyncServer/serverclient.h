@@ -11,8 +11,14 @@ class ServerClient : public QObject
 public:
 	explicit ServerClient(QWebSocket *socket, QObject *parent = nullptr);
 
+	bool validate(const QString &password);
+
+public slots:
+	void closeConnection();
+
 private slots:
 	void error(QAbstractSocket::SocketError error);
+	void disconnected();
 	void sslErrors(const QList<QSslError> &errors);
 
 private:
