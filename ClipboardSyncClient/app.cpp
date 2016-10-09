@@ -5,7 +5,7 @@
 
 App::App(int &argc, char **argv) :
 	QCoreApplication(argc, argv),
-	reader(nullptr),
+	console(nullptr),
 	client(nullptr)
 {
 	QCoreApplication::setApplicationName(TARGET);
@@ -42,12 +42,11 @@ int App::exec()
 
 bool App::init(const QString &address, const QString &serverName, bool secure)
 {
-	this->reader = new InputReader(this);
+	this->console = new Console(this);
+	this->console->installAsMessageHandler();
 
 	this->client = new SyncClient(this);
-	this->client->connectSocket(address, serverName, secure);
-
-	return true;
+	return this->client->connectSocket(address, serverName, secure);
 }
 
 int main(int argc, char *argv[])

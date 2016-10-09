@@ -12,10 +12,10 @@ TEMPLATE = lib
 DEFINES += CLIPBOARDSYNCCORE_LIBRARY
 
 SOURCES += \
-    inputreader.cpp
+    console.cpp
 
 HEADERS += clipboardsynccore_global.h \
-    inputreader.h
+    console.h
 
 unix {
     target.path = /usr/lib

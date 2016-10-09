@@ -2,7 +2,7 @@
 #define APP_H
 
 #include <QCoreApplication>
-#include "inputreader.h"
+#include "console.h"
 #include "syncserver.h"
 
 class App : public QCoreApplication
@@ -15,7 +15,7 @@ public:
 	int exec();
 
 private:
-	InputReader *reader;
+	Console *console;
 	SyncServer *syncServer;
 
 	bool init(const QString &serverName, int port, bool secure, bool local);

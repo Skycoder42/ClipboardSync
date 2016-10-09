@@ -1,12 +1,12 @@
-#ifndef INPUTREADER_H
-#define INPUTREADER_H
+#ifndef CONSOLE_H
+#define CONSOLE_H
 
 #include <QObject>
 #include <QThread>
 #include <QFile>
 #include "clipboardsynccore_global.h"
 
-class CLIPBOARDSYNCCORESHARED_EXPORT InputReader : public QThread
+class CLIPBOARDSYNCCORESHARED_EXPORT CLIPBOARDSYNCCORESHARED_EXPORT Console : public QThread
 {
 	Q_OBJECT
 
@@ -32,4 +32,4 @@ private:
 	bool autoQuit;
 };
 
-#endif // INPUTREADER_H
+#endif // CONSOLE_H

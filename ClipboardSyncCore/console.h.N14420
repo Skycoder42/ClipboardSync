@@ -1,0 +1,18 @@
+#ifndef CONSOLE_H
+#define CONSOLE_H
+
+#include <QObject>
+#include "clipboardsynccore_global.h"
+
+class CLIPBOARDSYNCCORESHARED_EXPORT CLIPBOARDSYNCCORESHARED_EXPORT Console : public QObject
+{
+	Q_OBJECT
+public:
+	explicit Console(QObject *parent = 0);
+
+signals:
+
+public slots:
+};
+
+#endif // CONSOLE_H

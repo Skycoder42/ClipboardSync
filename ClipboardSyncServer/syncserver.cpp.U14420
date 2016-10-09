@@ -7,7 +7,8 @@
 
 SyncServer::SyncServer(QObject *parent) :
 	QObject(parent),
-	server(nullptr)
+	server(nullptr),
+	errorString()
 {}
 
 bool SyncServer::createServer(const QString &serverName, int port, bool secure, bool local)
@@ -23,22 +24,24 @@ bool SyncServer::createServer(const QString &serverName, int port, bool secure, 
 			this, &SyncServer::serverError);
 	connect(this->server, &QWebSocketServer::originAuthenticationRequired,
 			this, &SyncServer::originAuthenticationRequired);
-//	connect(this->server, &QWebSocketServer::peerVerifyError,
-//			this, &SyncServer::peerVerifyError);
+	connect(this->server, &QWebSocketServer::peerVerifyError,
+			this, &SyncServer::peerVerifyError);
 	connect(this->server, &QWebSocketServer::sslErrors,
 			this, &SyncServer::sslErrors);
 
 	if(port < 0 || port > USHRT_MAX)
 		port = 0;
-	auto ok = this->server->listen(local ? QHostAddress::LocalHost : QHostAddress::Any, (quint16)port);
-	if(ok)
-		qDebug() << "Server Running on port" << this->server->serverPort();
-	return ok;
+	return this->server->listen(local ? QHostAddress::LocalHost : QHostAddress::Any, (quint16)port);
 }
 
 quint16 SyncServer::port() const
 {
 	return this->server->serverPort();
+}
+
+QString SyncServer::lastError() const
+{
+	return this->errorString;
 }
 
 void SyncServer::quitServer()
@@ -66,7 +69,7 @@ void SyncServer::acceptError(QAbstractSocket::SocketError socketError)
 
 void SyncServer::serverError(QWebSocketProtocol::CloseCode closeCode)
 {
-	qWarning() << "Failed to connect to peer ("
+	qWarning() << "Failed to connect to socket ("
 			   << closeCode
 			   << "):"
 			   << this->server->errorString().toUtf8();
@@ -80,12 +83,16 @@ void SyncServer::originAuthenticationRequired(QWebSocketCorsAuthenticator *pAuth
 	pAuthenticator->setAllowed(true);
 }
 
+void SyncServer::peerVerifyError(const QSslError &error)
+{
+	qWarning() << "Failed to connect to socket ("
+			   << closeCode
+			   << "):"
+			   << this->server->errorString().toUtf8();
+}
+
 void SyncServer::sslErrors(const QList<QSslError> &errors)
 {
-	foreach(auto error, errors) {
-		qWarning() << "SSL-Error occured ("
-				   << error.error()
-				   << "):"
-				   << error.errorString().toUtf8();
-	}
+	foreach (auto error, errors)
+		this->peerVerifyError(error);
 }

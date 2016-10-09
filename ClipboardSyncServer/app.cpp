@@ -4,7 +4,7 @@
 
 App::App(int &argc, char **argv) :
 	QCoreApplication(argc, argv),
-	reader(nullptr),
+	console(nullptr),
 	syncServer(nullptr)
 {
 	QCoreApplication::setApplicationName(TARGET);
@@ -41,7 +41,7 @@ int App::exec()
 		name = parser.positionalArguments()[0];
 		break;
 	case 0:
-		qDebug() << parser.helpText();
+		qInfo(qPrintable(parser.helpText()));
 		return EXIT_FAILURE;
 	}
 
@@ -53,21 +53,14 @@ int App::exec()
 
 bool App::init(const QString &serverName, int port, bool secure, bool local)
 {
-	this->reader = new InputReader(this);
+	this->console = new Console(this);
+	this->console->installAsMessageHandler();
 
 	this->syncServer = new SyncServer(this);
 	connect(this, &App::aboutToQuit,
 			this->syncServer, &SyncServer::quitServer);
-	connect(this->syncServer, &SyncServer::errorOccured, this, [](QString error, int code){
-		qDebug() << "Error:" << error << code;
-	});
 
-	auto ok = this->syncServer->createServer(serverName, port, secure, local);
-	if(ok)
-		qDebug() << "Server Running on port" << this->syncServer->port();
-	else
-		qWarning() << this->syncServer->lastError();
-	return ok;
+	return this->syncServer->createServer(serverName, port, secure, local);
 }
 
 int main(int argc, char *argv[])

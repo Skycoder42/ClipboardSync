@@ -3,7 +3,7 @@
 
 #include <QCoreApplication>
 #include <QHostAddress>
-#include "inputreader.h"
+#include "console.h"
 #include "syncclient.h"
 
 class App : public QCoreApplication
@@ -15,7 +15,7 @@ public:
 	int exec();
 
 private:
-	InputReader *reader;
+	Console *console;
 	SyncClient *client;
 
 	bool init(const QString &address, const QString &serverName, bool secure);

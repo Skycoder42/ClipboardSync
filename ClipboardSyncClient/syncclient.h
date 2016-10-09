@@ -10,7 +10,12 @@ class SyncClient : public QObject
 public:
 	explicit SyncClient(QObject *parent = nullptr);
 
-	void connectSocket(const QString &host, const QString &serverName, bool secure);
+	bool connectSocket(const QString &host, const QString &serverName, bool secure);
+
+private slots:
+	void connected();
+	void error(QAbstractSocket::SocketError error);
+	void sslErrors(const QList<QSslError> &errors);
 
 private:
 	QWebSocket *socket;

@@ -6,13 +6,51 @@ SyncClient::SyncClient(QObject *parent) :
 	socket(nullptr)
 {}
 
-void SyncClient::connectSocket(const QString &host, const QString &serverName, bool secure)
+bool SyncClient::connectSocket(const QString &host, const QString &serverName, bool secure)
 {
-	this->socket = new QWebSocket(serverName,QWebSocketProtocol::VersionLatest, this);
-	QUrl url;
-	url.setScheme(secure ? "wss" : "ws");
-	url.setAuthority(host);
+	this->socket = new QWebSocket(serverName, QWebSocketProtocol::VersionLatest, this);
+	connect(this->socket, &QWebSocket::connected,
+			this, &SyncClient::connected);
+	connect(this->socket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error),
+			this, &SyncClient::error);
+	connect(this->socket, &QWebSocket::sslErrors,
+			this, &SyncClient::sslErrors);
 
-	qDebug(url.isValid() ? "ok" : "saodifsodf");
-	this->socket->open(url);
+	QUrl url;
+	url.setScheme(secure ? QStringLiteral("wss") : QStringLiteral("ws"));
+	url.setAuthority(host);
+	if(!url.isValid()) {
+		qCritical() << "Invalid host data:"
+					<< host
+					<< "(Error:"
+					<< url.errorString()
+					<< ")";
+		return false;
+	} else {
+		this->socket->open(url);
+		return true;
+	}
+}
+
+void SyncClient::connected()
+{
+	qDebug() << "connected!";
+}
+
+void SyncClient::error(QAbstractSocket::SocketError error)
+{
+	qCritical() << "Socket error occured ("
+				<< error
+				<< "):"
+				<< this->socket->errorString().toUtf8();
+}
+
+void SyncClient::sslErrors(const QList<QSslError> &errors)
+{
+	foreach(auto error, errors) {
+		qWarning() << "SSL-Error occured ("
+				   << error.error()
+				   << "):"
+				   << error.errorString().toUtf8();
+	}
 }
