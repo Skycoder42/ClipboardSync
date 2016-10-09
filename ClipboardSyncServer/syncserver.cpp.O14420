@@ -51,11 +51,7 @@ void SyncServer::newConnection()
 {
 	qDebug() << "NEW CONNECTION";
 	auto socket = this->server->nextPendingConnection();
-	auto client = new ServerClient(socket, this);
-	this->clients.append(client);
-	connect(client, &ServerClient::destroyed, this, [=](){
-		this->clients.removeOne(client);
-	});
+	this->clients.append(new ServerClient(socket, this));
 
 	connect(socket, &QWebSocket::pong, this, [](quint64 dt, QByteArray load){
 		qDebug() << dt << load;

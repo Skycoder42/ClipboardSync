@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QWebSocketServer>
+#include "serverclient.h"
 
 class SyncServer : public QObject
 {
@@ -30,6 +31,7 @@ private slots:
 
 private:
 	QWebSocketServer *server;
+	QList<ServerClient*> clients;
 };
 
 #endif // SYNCSERVER_H

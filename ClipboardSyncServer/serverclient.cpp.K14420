@@ -1,0 +1,46 @@
+#include "serverclient.h"
+
+ServerClient::ServerClient(QWebSocket *socket, QObject *parent) :
+	QObject(parent),
+	socket(socket)
+{
+	this->socket->setParent(this);
+
+	connect(this->socket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error),
+			this, &ServerClient::error);
+	connect(this->socket, &QWebSocket::sslErrors,
+			this, &ServerClient::sslErrors);
+	connect(this->socket, &QWebSocket::aboutToClose,
+			this, &ServerClient::aboutToClose);
+}
+
+void ServerClient::error(QAbstractSocket::SocketError error)
+{
+	if(error == QAbstractSocket::RemoteHostClosedError)
+		return;
+
+	qWarning() << "Socket error occured ("
+			   << error
+			   << "):"
+			   << this->socket->errorString().toUtf8();
+
+	this->socket->close(QWebSocketProtocol::CloseCodeAbnormalDisconnection,
+						this->socket->errorString());
+	this->deleteLater();
+}
+
+void ServerClient::sslErrors(const QList<QSslError> &errors)
+{
+	foreach(auto error, errors) {
+		qWarning() << "SSL-Error occured ("
+				   << error.error()
+				   << "):"
+				   << error.errorString().toUtf8();
+	}
+}
+
+void ServerClient::aboutToClose()
+{
+	qDebug() << "Closing";
+}
+

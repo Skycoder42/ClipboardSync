@@ -23,7 +23,7 @@ bool SyncClient::connectSocket(const QString &host, const QString &serverName, b
 		qCritical() << "Invalid host data:"
 					<< host
 					<< "(Error:"
-					<< url.errorString()
+					<< url.errorString().toUtf8()
 					<< ")";
 		return false;
 	} else {
@@ -39,10 +39,19 @@ void SyncClient::connected()
 
 void SyncClient::error(QAbstractSocket::SocketError error)
 {
-	qCritical() << "Socket error occured ("
-				<< error
-				<< "):"
-				<< this->socket->errorString().toUtf8();
+	if(error == QAbstractSocket::RemoteHostClosedError) {
+		qCritical() << "Server closed the connection ("
+					<< this->socket->closeCode()
+					<< "):"
+					<< this->socket->closeReason();
+	} else {
+		this->socket->close(QWebSocketProtocol::CloseCodeAbnormalDisconnection,
+							this->socket->errorString());
+		qCritical() << "Socket error occured ("
+					<< error
+					<< "):"
+					<< this->socket->errorString().toUtf8();
+	}
 }
 
 void SyncClient::sslErrors(const QList<QSslError> &errors)

@@ -28,11 +28,13 @@ win32 {
 
 HEADERS += \
 	app.h \
-    syncserver.h
+    syncserver.h \
+    serverclient.h
 
 SOURCES += \
     app.cpp \
-    syncserver.cpp
+    syncserver.cpp \
+    serverclient.cpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ClipboardSyncCore/release/ -lClipboardSyncCore
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ClipboardSyncCore/debug/ -lClipboardSyncCore
