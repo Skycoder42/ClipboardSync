@@ -17,8 +17,6 @@ public:
 private:
 	Console *console;
 	SyncClient *client;
-
-	bool init(const QString &address, const QString &clientName, bool secure, const QString &password);
 };
 
 

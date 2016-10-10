@@ -3,23 +3,63 @@
 #include <QWebSocketCorsAuthenticator>
 #include <QSslError>
 #include <QCoreApplication>
+#include <QFile>
+#include <QSslKey>
 
 #include <QDebug>
 
-SyncServer::SyncServer(QObject *parent) :
+SyncServer::SyncServer(const QString &serverName, QObject *parent) :
 	QObject(parent),
 	server(nullptr),
+	serverName(serverName),
 	password(),
 	clients()
 {}
 
-bool SyncServer::createServer(const QString &serverName, int port, bool secure, const QString &password, bool local)
+bool SyncServer::setupSecurity(const QString &p12_file, const QString &passphrase)
 {
-	this->server = new QWebSocketServer(serverName,
-										secure ?
-											QWebSocketServer::SecureMode :
-											QWebSocketServer::NonSecureMode,
-										this);
+	this->server = new QWebSocketServer(this->serverName, QWebSocketServer::SecureMode, this);
+	auto config = this->server->sslConfiguration();
+	config.setProtocol(QSsl::SecureProtocols);//TODO more security
+
+	QFile file(p12_file);
+	if(!file.open(QIODevice::ReadOnly)) {
+		qCritical() << "Unable to open PKCS#12 file:"
+					<< p12_file;
+		return false;
+	}
+	QSslKey key;
+	QSslCertificate cert;
+	QList<QSslCertificate> caCertificates;
+	auto ok = QSslCertificate::importPkcs12(&file,
+											&key,
+											&cert,
+											&caCertificates,
+											passphrase.toUtf8());
+	if(!ok) {
+		file.close();
+		qCritical() << "Unable to load contents from PKCS#12 file"
+					<< p12_file;
+		return false;
+	} else {
+		file.close();
+		qDebug() << "Successfully PKCS#12 certificate and key!";
+		config.setLocalCertificate(cert);
+		config.setPrivateKey(key);
+		auto caCerts = config.caCertificates();
+		caCerts.append(caCertificates);
+		config.setCaCertificates(caCerts);
+	}
+
+	this->server->setSslConfiguration(config);
+	return true;
+}
+
+bool SyncServer::createServer(int port, const QString &password, bool local)
+{
+	if(!this->server)
+		this->server = new QWebSocketServer(this->serverName, QWebSocketServer::NonSecureMode, this);
+
 	this->password = password;
 	connect(this->server, &QWebSocketServer::newConnection,
 			this, &SyncServer::newConnection);
@@ -35,8 +75,13 @@ bool SyncServer::createServer(const QString &serverName, int port, bool secure, 
 	if(port < 0 || port > USHRT_MAX)
 		port = 0;
 	auto ok = this->server->listen(local ? QHostAddress::LocalHost : QHostAddress::Any, (quint16)port);
-	if(ok)
-		qDebug() << "Server Running on port" << this->server->serverPort();
+	if(ok) {
+		qDebug() << "Server Running on port"
+				 << this->server->serverPort()
+				 << "in"
+				 << (this->server->secureMode() == QWebSocketServer::SecureMode ? "secure mode (wss)" : "non secure mode (ws)")
+				 << (local ? "(local only)" : "");
+	}
 	return ok;
 }
 

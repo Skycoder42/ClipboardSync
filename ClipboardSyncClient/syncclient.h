@@ -8,9 +8,10 @@ class SyncClient : public QObject
 {
 	Q_OBJECT
 public:
-	explicit SyncClient(QObject *parent = nullptr);
+	explicit SyncClient(const QString &clientName, QObject *parent = nullptr);
 
-	bool connectSocket(const QString &host, const QString &clientName, bool secure, const QString &password = QString());
+	bool setupSecurity(const QString &cert_file, const QString &format);
+	bool connectSocket(const QString &host, const QString &password = QString());
 
 public slots:
 	void closeConnection();
@@ -23,6 +24,7 @@ private slots:
 
 private:
 	QWebSocket *socket;
+	bool isSecure;
 };
 
 #endif // SYNCCLIENT_H

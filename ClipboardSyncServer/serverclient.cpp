@@ -23,8 +23,8 @@ bool ServerClient::validate(const QString &password)
 	if(password == remotePw)
 		return true;
 	else {
-		qWarning() << "Client authentification failed for client:"
-				   << this->socket->origin();
+		qWarning() << qPrintable(this->socket->origin()) << "-->"
+				   << "Client authentification failed! Invalid Password.";
 		disconnect(this->socket, &QWebSocket::disconnected,
 				   this, &ServerClient::disconnected);
 		this->socket->close(QWebSocketProtocol::CloseCodePolicyViolated,
@@ -45,7 +45,8 @@ void ServerClient::closeConnection()
 void ServerClient::error(QAbstractSocket::SocketError error)
 {
 	if(error != QAbstractSocket::RemoteHostClosedError) {
-		qWarning() << "Socket error occured ("
+		qWarning() << qPrintable(this->socket->origin()) << "-->"
+				   << "Socket error occured ("
 				   << error
 				   << "):"
 				   << this->socket->errorString().toUtf8();
@@ -59,7 +60,8 @@ void ServerClient::error(QAbstractSocket::SocketError error)
 
 void ServerClient::disconnected()
 {
-	qWarning() << "Client closed the connection ("
+	qWarning() << qPrintable(this->socket->origin()) << "-->"
+			   << "Client closed the connection ("
 			   << this->socket->closeCode()
 			   << "):"
 			   << this->socket->closeReason();
@@ -68,7 +70,8 @@ void ServerClient::disconnected()
 void ServerClient::sslErrors(const QList<QSslError> &errors)
 {
 	foreach(auto error, errors) {
-		qWarning() << "SSL-Error occured ("
+		qWarning() << qPrintable(this->socket->origin()) << "-->"
+				   << "SSL-Error occured ("
 				   << error.error()
 				   << "):"
 				   << error.errorString().toUtf8();

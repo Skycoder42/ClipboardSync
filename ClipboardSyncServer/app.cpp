@@ -26,7 +26,7 @@ int App::exec()
 						 "0"
 					 });
 	parser.addOption({
-						 {"a", "password", "access-key"},
+						 {"a", "auth", "authentication"},
 						 "The <password> to secure the server. Only clients knowing the key may connect. "
 						 "If not set, no password is required. NOTE: Only use with secure mode, because "
 						 "otherwise the key will be send plain.",
@@ -34,7 +34,16 @@ int App::exec()
 					 });
 	parser.addOption({
 						 {"s", "secure"},
-						 "Start the server in secure websocket mode (wss) instead of normal mode (ws)."
+						 "Start the server in secure websocket mode (wss) instead of normal mode (ws). "
+						 "The <p12-file> must be a valid PKCS#12 file for the server to load certificate and key. "
+						 "If the file is protected by a password, use the -k option",
+						 "p12-file"
+					 });
+	parser.addOption({
+						 {"k", "keypass", "keypassphrase"},
+						 "The <passphrase> to use to load the PKCS#12 file. if -s is set, you must use this option "
+						 "as well, if the file is protected by a password.",
+						 "passphrase"
 					 });
 	parser.addOption({
 						 {"l", "local"},
@@ -46,26 +55,24 @@ int App::exec()
 		return EXIT_FAILURE;
 	}
 
-	if(this->init(parser.positionalArguments()[0],
-				  parser.value("p").toInt(),
-				  parser.isSet("s"),
-				  parser.value("a"),
-				  parser.isSet("l")))
-		return QCoreApplication::exec();
-	else
-		return EXIT_FAILURE;
-}
-
-bool App::init(const QString &serverName, int port, bool secure, const QString &password, bool local)
-{
 	this->console = new Console(this);
 	this->console->installAsMessageHandler();
 
-	this->syncServer = new SyncServer(this);
+	this->syncServer = new SyncServer(parser.positionalArguments()[0], this);
 	connect(this, &App::aboutToQuit,
 			this->syncServer, &SyncServer::quitServer);
 
-	return this->syncServer->createServer(serverName, port, secure, password, local);
+	if(parser.isSet("s")) {
+		if(!this->syncServer->setupSecurity(parser.value("s"), parser.value("a")))
+			return EXIT_FAILURE;
+	}
+
+	if(this->syncServer->createServer(parser.value("p").toInt(),
+									  parser.value("a"),
+									  parser.isSet("l")))
+		return QCoreApplication::exec();
+	else
+		return EXIT_FAILURE;
 }
 
 int main(int argc, char *argv[])

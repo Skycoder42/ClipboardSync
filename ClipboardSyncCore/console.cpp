@@ -91,10 +91,10 @@ void Console::consoleMessage(QtMsgType type, const QMessageLogContext &context, 
 		resStr = QStringLiteral("[Debug]    ") + msg;
 		break;
 	case QtMsgType::QtWarningMsg:
-		resStr = QStringLiteral("[Warning] ") + msg;
+		resStr = QStringLiteral("[Warning]  ") + msg;
 		break;
 	case QtMsgType::QtCriticalMsg:
-		resStr = QStringLiteral("[Critical]  ") + msg;
+		resStr = QStringLiteral("[Critical] ") + msg;
 		qApp->quit();
 		break;
 	case QtMsgType::QtFatalMsg:

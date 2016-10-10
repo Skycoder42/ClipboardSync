@@ -9,12 +9,10 @@ class SyncServer : public QObject
 {
 	Q_OBJECT
 public:
-	explicit SyncServer(QObject *parent = nullptr);
+	explicit SyncServer(const QString &serverName, QObject *parent = nullptr);
 
-	bool createServer(const QString &serverName,
-					  int port,
-					  bool secure, const QString &password,
-					  bool local);
+	bool setupSecurity(const QString &p12_file, const QString &passphrase);
+	bool createServer(int port, const QString &password, bool local);
 
 	quint16 port() const;
 
@@ -30,6 +28,7 @@ private slots:
 
 private:
 	QWebSocketServer *server;
+	QString serverName;
 	QString password;
 	QList<ServerClient*> clients;
 };

@@ -3,14 +3,11 @@
 #include <QNetworkRequest>
 #include "synccore.h"
 
-SyncClient::SyncClient(QObject *parent) :
+SyncClient::SyncClient(const QString &clientName, QObject *parent) :
 	QObject(parent),
-	socket(nullptr)
-{}
-
-bool SyncClient::connectSocket(const QString &host, const QString &clientName, bool secure, const QString &password)
+	socket(new QWebSocket(clientName, QWebSocketProtocol::VersionLatest, this)),
+	isSecure(false)
 {
-	this->socket = new QWebSocket(clientName, QWebSocketProtocol::VersionLatest, this);
 	connect(this->socket, &QWebSocket::connected,
 			this, &SyncClient::connected);
 	connect(this->socket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error),
@@ -20,8 +17,48 @@ bool SyncClient::connectSocket(const QString &host, const QString &clientName, b
 	connect(this->socket, &QWebSocket::disconnected,
 			this, &SyncClient::disconnected);
 
+	qDebug() << "Created client with name" << clientName;
+}
+
+bool SyncClient::setupSecurity(const QString &cert_file, const QString &format)
+{
+	auto config = this->socket->sslConfiguration();
+	config.setProtocol(QSsl::SecureProtocols);//TODO more security
+
+	if(cert_file == QStringLiteral("any")) {
+		qWarning() << "Client will accept all certificates without validation!";
+		config.setPeerVerifyMode(QSslSocket::VerifyNone);
+	} else if(cert_file != QStringLiteral("default")) {
+		QSsl::EncodingFormat eFormat;
+		if(format == QStringLiteral("der"))
+			eFormat = QSsl::Der;
+		else
+			eFormat = QSsl::Pem;
+
+		auto certs = QSslCertificate::fromPath(cert_file, eFormat);
+		if(certs.isEmpty()) {
+			qCritical() << "Unable to load certificate from file:"
+						<< cert_file
+						<< "with format"
+						<< format;
+			return false;
+		} else {
+			qDebug() << "Successfully loaded certificate(s)!";
+			auto caCerts = config.caCertificates();
+			caCerts.append(certs);
+			config.setCaCertificates(caCerts);
+		}
+	}
+	this->socket->setSslConfiguration(config);
+
+	this->isSecure = true;
+	return true;
+}
+
+bool SyncClient::connectSocket(const QString &host, const QString &password)
+{
 	QUrl url;
-	url.setScheme(secure ? QStringLiteral("wss") : QStringLiteral("ws"));
+	url.setScheme(this->isSecure ? QStringLiteral("wss") : QStringLiteral("ws"));
 	url.setAuthority(host);
 	if(!url.isValid()) {
 		qCritical() << "Invalid host data:"
@@ -31,7 +68,8 @@ bool SyncClient::connectSocket(const QString &host, const QString &clientName, b
 					<< ")";
 		return false;
 	} else {
-		if(!password.isNull()) {
+		qDebug() << "Connecting to server at" << url.toString();
+		if(!password.isEmpty()) {
 			QNetworkRequest request(url);
 			request.setRawHeader(SyncCore::AccessKeyHeader, password.toUtf8().toBase64());
 			this->socket->open(request);
