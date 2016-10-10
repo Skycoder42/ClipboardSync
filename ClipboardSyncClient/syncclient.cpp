@@ -99,7 +99,7 @@ void SyncClient::error(QAbstractSocket::SocketError error)
 		this->socket->close(QWebSocketProtocol::CloseCodeAbnormalDisconnection,
 							this->socket->errorString());
 		qCritical() << "Socket error occured ("
-					<< error
+					<< (int)error
 					<< "):"
 					<< this->socket->errorString().toUtf8();
 	}
@@ -108,7 +108,7 @@ void SyncClient::error(QAbstractSocket::SocketError error)
 void SyncClient::disconnected()
 {
 	qCritical() << "Server closed the connection ("
-				<< this->socket->closeCode()
+				<< (int)this->socket->closeCode()
 				<< "):"
 				<< this->socket->closeReason();
 }
@@ -117,7 +117,7 @@ void SyncClient::sslErrors(const QList<QSslError> &errors)
 {
 	foreach(auto error, errors) {
 		qWarning() << "SSL-Error occured ("
-				   << error.error()
+				   << (int)error.error()
 				   << "):"
 				   << error.errorString().toUtf8();
 	}

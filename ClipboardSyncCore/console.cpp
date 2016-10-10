@@ -95,7 +95,7 @@ void Console::consoleMessage(QtMsgType type, const QMessageLogContext &context, 
 		break;
 	case QtMsgType::QtCriticalMsg:
 		resStr = QStringLiteral("[Critical] ") + msg;
-		qApp->quit();
+		QMetaObject::invokeMethod(qApp, "quit", Qt::QueuedConnection);
 		break;
 	case QtMsgType::QtFatalMsg:
 		resStr = QStringLiteral("[Fatal]    ") + msg;

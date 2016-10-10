@@ -47,7 +47,7 @@ void ServerClient::error(QAbstractSocket::SocketError error)
 	if(error != QAbstractSocket::RemoteHostClosedError) {
 		qWarning() << qPrintable(this->socket->origin()) << "-->"
 				   << "Socket error occured ("
-				   << error
+				   << (int)error
 				   << "):"
 				   << this->socket->errorString().toUtf8();
 
@@ -62,7 +62,7 @@ void ServerClient::disconnected()
 {
 	qWarning() << qPrintable(this->socket->origin()) << "-->"
 			   << "Client closed the connection ("
-			   << this->socket->closeCode()
+			   << (int)this->socket->closeCode()
 			   << "):"
 			   << this->socket->closeReason();
 }
@@ -72,7 +72,7 @@ void ServerClient::sslErrors(const QList<QSslError> &errors)
 	foreach(auto error, errors) {
 		qWarning() << qPrintable(this->socket->origin()) << "-->"
 				   << "SSL-Error occured ("
-				   << error.error()
+				   << (int)error.error()
 				   << "):"
 				   << error.errorString().toUtf8();
 	}

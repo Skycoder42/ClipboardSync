@@ -49,6 +49,14 @@ bool SyncServer::setupSecurity(const QString &p12_file, const QString &passphras
 		auto caCerts = config.caCertificates();
 		caCerts.append(caCertificates);
 		config.setCaCertificates(caCerts);
+
+		if(!cert.issuerInfo(QSslCertificate::CommonName).contains(this->server->serverName())) {
+			qWarning() << "Certificate does not include the servers name!"
+					   << "Known CNs:"
+					   << cert.issuerInfo(QSslCertificate::CommonName)
+					   << "Server Name:"
+					   << this->server->serverName();
+		}
 	}
 
 	this->server->setSslConfiguration(config);
@@ -63,6 +71,8 @@ bool SyncServer::createServer(int port, const QString &password, bool local)
 	this->password = password;
 	connect(this->server, &QWebSocketServer::newConnection,
 			this, &SyncServer::newConnection);
+	connect(this->server, &QWebSocketServer::acceptError,
+			this, &SyncServer::acceptError);
 	connect(this->server, &QWebSocketServer::serverError,
 			this, &SyncServer::serverError);
 //	connect(this->server, &QWebSocketServer::originAuthenticationRequired,
@@ -119,7 +129,7 @@ void SyncServer::newConnection()
 void SyncServer::acceptError(QAbstractSocket::SocketError socketError)
 {
 	qWarning() << "Failed to accept new connection ("
-			   << socketError
+			   << (int)socketError
 			   << "):"
 			   << this->server->errorString().toUtf8();
 }
@@ -127,7 +137,7 @@ void SyncServer::acceptError(QAbstractSocket::SocketError socketError)
 void SyncServer::serverError(QWebSocketProtocol::CloseCode closeCode)
 {
 	qWarning() << "Failed to connect to peer ("
-			   << closeCode
+			   << (int)closeCode
 			   << "):"
 			   << this->server->errorString().toUtf8();
 }
@@ -136,7 +146,7 @@ void SyncServer::sslErrors(const QList<QSslError> &errors)
 {
 	foreach(auto error, errors) {
 		qWarning() << "SSL-Error occured ("
-				   << error.error()
+				   << (int)error.error()
 				   << "):"
 				   << error.errorString().toUtf8();
 	}
