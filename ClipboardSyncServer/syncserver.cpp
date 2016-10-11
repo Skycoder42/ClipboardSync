@@ -16,7 +16,7 @@ SyncServer::SyncServer(const QString &serverName, QObject *parent) :
 	serverName(serverName),
 	password(),
 	clients(),
-	currentState(QJsonDocument(QJsonObject()).toBinaryData())
+	currentState()
 {}
 
 bool SyncServer::setupSecurity(const QString &p12_file, const QString &passphrase)
@@ -114,6 +114,12 @@ void SyncServer::syncAll()
 {
 	foreach(auto client, this->clients)
 		client->sendData(this->currentState);
+}
+
+void SyncServer::clear()
+{
+	this->currentState = QJsonDocument(QJsonObject()).toBinaryData();
+	this->syncAll();
 }
 
 void SyncServer::performSync(ServerClient *origin, const QByteArray &data)

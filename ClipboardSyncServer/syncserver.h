@@ -20,6 +20,7 @@ public slots:
 	void quitServer();
 
 	void syncAll();
+	void clear();
 	void performSync(ServerClient *origin, const QByteArray &data);
 
 private slots:

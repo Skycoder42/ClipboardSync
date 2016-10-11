@@ -84,6 +84,8 @@ void App::commandReceived(const QByteArray &command)
 {
 	if(command == "sync")
 		this->clipController->syncNow();
+	else if(command == "clear")
+		this->clipController->clear();
 }
 
 int main(int argc, char *argv[])

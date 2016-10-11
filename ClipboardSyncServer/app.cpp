@@ -82,6 +82,8 @@ void App::commandReceived(const QByteArray &command)
 {
 	if(command == "sync")
 		this->syncServer->syncAll();
+	else if(command == "clear")
+		this->syncServer->clear();
 }
 
 int main(int argc, char *argv[])

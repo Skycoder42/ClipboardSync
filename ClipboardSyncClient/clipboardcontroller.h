@@ -13,6 +13,7 @@ public:
 public slots:
 	void setClipboard(const QByteArray &data);
 	void syncNow();
+	void clear();
 
 signals:
 	void clipboardChanged(const QByteArray &data);

@@ -53,6 +53,11 @@ void ClipboardController::syncNow()
 	this->clipDataChanged();
 }
 
+void ClipboardController::clear()
+{
+	this->clipboard->clear();
+}
+
 void ClipboardController::clipDataChanged()
 {
 	if(this->skipNext) {

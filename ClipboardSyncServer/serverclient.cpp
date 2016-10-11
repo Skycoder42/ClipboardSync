@@ -49,7 +49,8 @@ void ServerClient::closeConnection()
 
 void ServerClient::sendData(const QByteArray &data)
 {
-	this->socket->sendBinaryMessage(data);
+	if(!data.isEmpty())
+		this->socket->sendBinaryMessage(data);
 }
 
 void ServerClient::error(QAbstractSocket::SocketError error)
