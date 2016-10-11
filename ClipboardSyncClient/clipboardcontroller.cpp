@@ -50,13 +50,7 @@ void ClipboardController::setClipboard(const QByteArray &data)
 
 void ClipboardController::syncNow()
 {
-//	this->clipDataChanged();
-
-	QImage image("C:/Users/Felix/Pictures/418405.jpg");
-	auto mime = new QMimeData();
-	mime->setImageData(image);
-	this->clipboard->setMimeData(mime);
-	qDebug() << mime->data(mime->formats().first()).size();
+	this->clipDataChanged();
 }
 
 void ClipboardController::clipDataChanged()
