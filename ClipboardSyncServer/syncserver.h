@@ -20,8 +20,10 @@ public slots:
 	void quitServer();
 
 	void syncAll();
-	void clear();
+	void clear();	
 	void performSync(ServerClient *origin, const QByteArray &data);
+
+	void closeNamedClient(const QString &name);
 
 private slots:
 	void newConnection();

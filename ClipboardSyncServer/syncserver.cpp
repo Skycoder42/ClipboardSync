@@ -131,6 +131,14 @@ void SyncServer::performSync(ServerClient *origin, const QByteArray &data)
 	}
 }
 
+void SyncServer::closeNamedClient(const QString &name)
+{
+	foreach(auto client, this->clients) {
+		if(client->name() == name)
+			client->closeConnection();
+	}
+}
+
 void SyncServer::newConnection()
 {
 	auto socket = this->server->nextPendingConnection();

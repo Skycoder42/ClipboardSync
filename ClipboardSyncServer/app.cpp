@@ -1,6 +1,7 @@
 #include "app.h"
 #include <QCommandLineParser>
 #include <QDebug>
+#include <QRegularExpression>
 
 App::App(int &argc, char **argv) :
 	QCoreApplication(argc, argv),
@@ -84,6 +85,12 @@ void App::commandReceived(const QByteArray &command)
 		this->syncServer->syncAll();
 	else if(command == "clear")
 		this->syncServer->clear();
+	else if(command.startsWith("close")) {
+		const static QRegularExpression regex(QStringLiteral(R"__(^close(?:\s+)([^\s].*)$)__"));
+		auto match = regex.match(command);
+		if(match.hasMatch())
+			this->syncServer->closeNamedClient(match.captured(1));
+	}
 }
 
 int main(int argc, char *argv[])

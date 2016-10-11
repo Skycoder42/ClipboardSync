@@ -38,12 +38,20 @@ bool ServerClient::validate(const QString &password)
 	}
 }
 
+QString ServerClient::name() const
+{
+	return this->socket->origin();
+}
+
 void ServerClient::closeConnection()
 {
+	qDebug() << qPrintable(this->socket->origin()) << "-->"
+			 << "Client was closed by the server";
 	if(this->socket->state() == QAbstractSocket::ConnectedState) {
 		disconnect(this->socket, &QWebSocket::disconnected,
 				   this, &ServerClient::disconnected);
 		this->socket->close();
+		this->deleteLater();
 	}
 }
 

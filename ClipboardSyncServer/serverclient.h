@@ -14,6 +14,8 @@ public:
 
 	bool validate(const QString &password);
 
+	QString name() const;
+
 public slots:
 	void closeConnection();
 	void sendData(const QByteArray &data);
