@@ -4,9 +4,10 @@
 #include <QDebug>
 
 App::App(int &argc, char **argv) :
-	QCoreApplication(argc, argv),
+	QGuiApplication(argc, argv),
 	console(nullptr),
-	client(nullptr)
+	client(nullptr),
+	clipController(nullptr)
 {
 	QCoreApplication::setApplicationName(TARGET);
 	QCoreApplication::setApplicationVersion(VERSION);
@@ -50,9 +51,14 @@ int App::exec()
 		return EXIT_FAILURE;
 	}
 
+	//console
 	this->console = new Console(this);
 	this->console->installAsMessageHandler();
+	connect(this->console, &Console::commandReceived,
+			this, &App::commandReceived,
+			Qt::QueuedConnection);
 
+	//client
 	this->client = new SyncClient(parser.positionalArguments()[0], this);
 	connect(this, &App::aboutToQuit,
 			this->client, &SyncClient::closeConnection);
@@ -61,11 +67,25 @@ int App::exec()
 		if(!this->client->setupSecurity(parser.value("s"), parser.value("f")))
 			return EXIT_FAILURE;
 	}
-	if(this->client->connectSocket(parser.positionalArguments()[1], parser.value("a")))
-		return QCoreApplication::exec();
-	else
+	if(!this->client->connectSocket(parser.positionalArguments()[1], parser.value("a")))
 		return EXIT_FAILURE;
+
+	//clipController
+	this->clipController = new ClipboardController(this);
+	connect(this->clipController, &ClipboardController::clipboardChanged,
+			this->client, &SyncClient::sendData);
+	connect(this->client, &SyncClient::dataReceived,
+			this->clipController, &ClipboardController::setClipboard);
+
+	return QCoreApplication::exec();
 }
+
+void App::commandReceived(const QByteArray &command)
+{
+	if(command == "sync")
+		this->clipController->syncNow();
+}
+
 int main(int argc, char *argv[])
 {
 	App a(argc, argv);

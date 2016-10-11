@@ -5,6 +5,8 @@
 #include <QCoreApplication>
 #include <QFile>
 #include <QSslKey>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include <QDebug>
 
@@ -13,7 +15,8 @@ SyncServer::SyncServer(const QString &serverName, QObject *parent) :
 	server(nullptr),
 	serverName(serverName),
 	password(),
-	clients()
+	clients(),
+	currentState(QJsonDocument(QJsonObject()).toBinaryData())
 {}
 
 bool SyncServer::setupSecurity(const QString &p12_file, const QString &passphrase)
@@ -107,6 +110,21 @@ void SyncServer::quitServer()
 		client->closeConnection();
 }
 
+void SyncServer::syncAll()
+{
+	foreach(auto client, this->clients)
+		client->sendData(this->currentState);
+}
+
+void SyncServer::performSync(ServerClient *origin, const QByteArray &data)
+{
+	this->currentState = data;
+	foreach(auto client, this->clients) {
+		if(client != origin)
+			client->sendData(data);
+	}
+}
+
 void SyncServer::newConnection()
 {
 	auto socket = this->server->nextPendingConnection();
@@ -118,10 +136,7 @@ void SyncServer::newConnection()
 			this->clients.removeOne(client);
 		});
 
-		connect(socket, &QWebSocket::pong, this, [](quint64 dt, QByteArray load){
-			qDebug() << dt << load;
-		});
-		socket->ping("Baum42");
+		client->sendData(this->currentState);
 	} else
 		client->deleteLater();
 }

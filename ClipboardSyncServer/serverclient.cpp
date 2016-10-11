@@ -1,8 +1,10 @@
 #include "serverclient.h"
 #include "synccore.h"
+#include "syncserver.h"
 
-ServerClient::ServerClient(QWebSocket *socket, QObject *parent) :
+ServerClient::ServerClient(QWebSocket *socket, SyncServer *parent) :
 	QObject(parent),
+	server(parent),
 	socket(socket)
 {
 	this->socket->setParent(this);
@@ -13,6 +15,9 @@ ServerClient::ServerClient(QWebSocket *socket, QObject *parent) :
 			this, &ServerClient::sslErrors);
 	connect(this->socket, &QWebSocket::disconnected,
 			this, &ServerClient::disconnected);
+
+	connect(this->socket, &QWebSocket::binaryMessageReceived,
+			this, &ServerClient::clientMessage);
 }
 
 bool ServerClient::validate(const QString &password)
@@ -40,6 +45,11 @@ void ServerClient::closeConnection()
 				   this, &ServerClient::disconnected);
 		this->socket->close();
 	}
+}
+
+void ServerClient::sendData(const QByteArray &data)
+{
+	this->socket->sendBinaryMessage(data);
 }
 
 void ServerClient::error(QAbstractSocket::SocketError error)
@@ -76,5 +86,12 @@ void ServerClient::sslErrors(const QList<QSslError> &errors)
 				   << "):"
 				   << error.errorString().toUtf8();
 	}
+}
+
+void ServerClient::clientMessage(const QByteArray &message)
+{
+	qDebug() << qPrintable(this->socket->origin()) << "-->"
+			 << "Sent new clipboard state";
+	this->server->performSync(this, message);
 }
 

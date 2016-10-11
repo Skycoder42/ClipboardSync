@@ -16,6 +16,8 @@ SyncClient::SyncClient(const QString &clientName, QObject *parent) :
 			this, &SyncClient::sslErrors);
 	connect(this->socket, &QWebSocket::disconnected,
 			this, &SyncClient::disconnected);
+	connect(this->socket, &QWebSocket::binaryMessageReceived,
+			this, &SyncClient::dataReceived);
 
 	qDebug() << "Created client with name" << clientName;
 }
@@ -86,6 +88,11 @@ void SyncClient::closeConnection()
 				   this, &SyncClient::disconnected);
 		this->socket->close();
 	}
+}
+
+void SyncClient::sendData(const QByteArray &data)
+{
+	this->socket->sendBinaryMessage(data);
 }
 
 void SyncClient::connected()

@@ -16,6 +16,11 @@ public:
 public slots:
 	void closeConnection();
 
+	void sendData(const QByteArray &data);
+
+signals:
+	void dataReceived(const QByteArray &data);
+
 private slots:
 	void connected();
 	void error(QAbstractSocket::SocketError error);

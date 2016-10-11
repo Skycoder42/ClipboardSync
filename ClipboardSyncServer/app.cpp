@@ -57,6 +57,9 @@ int App::exec()
 
 	this->console = new Console(this);
 	this->console->installAsMessageHandler();
+	connect(this->console, &Console::commandReceived,
+			this, &App::commandReceived,
+			Qt::QueuedConnection);
 
 	this->syncServer = new SyncServer(parser.positionalArguments()[0], this);
 	connect(this, &App::aboutToQuit,
@@ -73,6 +76,12 @@ int App::exec()
 		return QCoreApplication::exec();
 	else
 		return EXIT_FAILURE;
+}
+
+void App::commandReceived(const QByteArray &command)
+{
+	if(command == "sync")
+		this->syncServer->syncAll();
 }
 
 int main(int argc, char *argv[])

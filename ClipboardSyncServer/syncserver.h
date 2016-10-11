@@ -19,6 +19,9 @@ public:
 public slots:
 	void quitServer();
 
+	void syncAll();
+	void performSync(ServerClient *origin, const QByteArray &data);
+
 private slots:
 	void newConnection();
 
@@ -30,7 +33,9 @@ private:
 	QWebSocketServer *server;
 	QString serverName;
 	QString password;
+
 	QList<ServerClient*> clients;
+	QByteArray currentState;
 };
 
 #endif // SYNCSERVER_H

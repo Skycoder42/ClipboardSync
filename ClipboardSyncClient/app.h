@@ -1,12 +1,13 @@
 #ifndef APP_H
 #define APP_H
 
-#include <QCoreApplication>
+#include <QGuiApplication>
 #include <QHostAddress>
 #include "console.h"
 #include "syncclient.h"
+#include "clipboardcontroller.h"
 
-class App : public QCoreApplication
+class App : public QGuiApplication
 {
 	Q_OBJECT
 public:
@@ -14,9 +15,13 @@ public:
 
 	int exec();
 
+private slots:
+	void commandReceived(const QByteArray &command);
+
 private:
 	Console *console;
 	SyncClient *client;
+	ClipboardController *clipController;
 };
 
 

@@ -1,7 +1,6 @@
 TEMPLATE = app
 
-QT += core websockets
-QT -= gui
+QT += core websockets gui
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
@@ -28,11 +27,13 @@ win32 {
 
 HEADERS += \
 	app.h \
-    syncclient.h
+    syncclient.h \
+    clipboardcontroller.h
 
 SOURCES += \
     app.cpp \
-    syncclient.cpp
+    syncclient.cpp \
+    clipboardcontroller.cpp
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ClipboardSyncCore/release/ -lClipboardSyncCore
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ClipboardSyncCore/debug/ -lClipboardSyncCore

@@ -14,6 +14,9 @@ public:
 
 	int exec();
 
+private slots:
+	void commandReceived(const QByteArray &command);
+
 private:
 	Console *console;
 	SyncServer *syncServer;
