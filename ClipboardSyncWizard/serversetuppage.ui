@@ -51,43 +51,90 @@
      </item>
      <item row="1" column="1">
       <widget class="QSpinBox" name="serverPortSpinBox">
-       <property name="wrapping">
-        <bool>true</bool>
-       </property>
        <property name="specialValueText">
         <string>Automatic Port</string>
        </property>
        <property name="accelerated">
         <bool>true</bool>
        </property>
-       <property name="showGroupSeparator" stdset="0">
-        <bool>true</bool>
-       </property>
        <property name="minimum">
-        <number>-1</number>
+        <number>0</number>
        </property>
        <property name="maximum">
         <number>65535</number>
        </property>
        <property name="value">
-        <number>-1</number>
+        <number>0</number>
        </property>
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="secureConnectionLabel">
+      <widget class="QCheckBox" name="authenticationCheckBox">
        <property name="text">
-        <string>&amp;Secure Connection:</string>
-       </property>
-       <property name="buddy">
-        <cstring>secureConnectionCheckBox</cstring>
+        <string>&amp;Authentication:</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QCheckBox" name="secureConnectionCheckBox"/>
+      <widget class="QLineEdit" name="authenticationLineEdit">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
+       </property>
+       <property name="placeholderText">
+        <string>Enter a password</string>
+       </property>
+      </widget>
      </item>
      <item row="3" column="0">
+      <widget class="QCheckBox" name="secureConnectionCheckBox">
+       <property name="text">
+        <string>&amp;Secure Connection:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QPathEdit" name="secureConnectionPathEdit">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="editable">
+          <bool>true</bool>
+         </property>
+         <property name="allowEmptyPath">
+          <bool>false</bool>
+         </property>
+         <property name="placeholder">
+          <string>Path to a PKCS#12 certificate store</string>
+         </property>
+         <property name="mimeTypeFilters">
+          <stringlist>
+           <string>application/x-pkcs12</string>
+           <string>application/octet-stream</string>
+          </stringlist>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="secureConnectionPassphraseEdit">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="echoMode">
+          <enum>QLineEdit::Password</enum>
+         </property>
+         <property name="placeholderText">
+          <string>Store passphrase</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="4" column="0">
       <widget class="QLabel" name="localhostOnlyLabel">
        <property name="text">
         <string>&amp;Localhost Only:</string>
@@ -97,7 +144,7 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
+     <item row="4" column="1">
       <widget class="QCheckBox" name="localhostOnlyCheckBox"/>
      </item>
     </layout>
@@ -117,6 +164,62 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QPathEdit</class>
+   <extends>QWidget</extends>
+   <header>qpathedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>authenticationCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>authenticationLineEdit</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>62</x>
+     <y>70</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>160</x>
+     <y>76</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>secureConnectionCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>secureConnectionPathEdit</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>74</x>
+     <y>103</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>203</x>
+     <y>104</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>secureConnectionCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>secureConnectionPassphraseEdit</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>38</x>
+     <y>104</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>176</x>
+     <y>135</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

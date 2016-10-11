@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 TEMPLATE = app
-QT       += core gui widgets
+QT       += core gui widgets network
 
 CONFIG += c++11
 
@@ -29,17 +29,20 @@ win32 {
 	DEFINES += "DISPLAY_NAME=\"\\\"Clipboard-Sync\\\"\""
 }
 
+include(../QPathEdit/qpathedit.pri)
+include(../QtUtils/DialogMaster/dialogmaster.pri)
+
+HEADERS  += \
+	intropage.h \
+	mainwizard.h \
+	serversetuppage.h \
+	clientsetuppage.h
+
 SOURCES += main.cpp\
     intropage.cpp \
     mainwizard.cpp \
     serversetuppage.cpp \
-    clientsetuppage.cpp
-
-HEADERS  += \
-    intropage.h \
-    mainwizard.h \
-    serversetuppage.h \
-    clientsetuppage.h
+	clientsetuppage.cpp
 
 FORMS    += \
     intropage.ui \

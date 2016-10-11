@@ -16,6 +16,8 @@ public:
 	explicit ServerSetupPage(QWidget *parent = nullptr);
 	~ServerSetupPage();
 
+	bool validatePage() override;
+	bool isComplete() const override;
 	void cleanupPage() override;
 	int nextId() const override;
 
