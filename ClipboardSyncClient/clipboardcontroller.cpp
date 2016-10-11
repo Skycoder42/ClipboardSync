@@ -3,7 +3,8 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QMimeData>
-
+#include <QBuffer>
+#include <QImage>
 #include <QDebug>
 
 ClipboardController::ClipboardController(QObject *parent) :
@@ -17,17 +18,29 @@ ClipboardController::ClipboardController(QObject *parent) :
 
 void ClipboardController::setClipboard(const QByteArray &data)
 {
-	qDebug() << "Received clipboard data from server";
 	auto doc = QJsonDocument::fromBinaryData(data);
 	if(!doc.isNull()) {
 		auto object = doc.object();
 		if(object.isEmpty()) {
+			qDebug() << "Received clipboard clear from server";
 			this->skipNext = true;
 			this->clipboard->clear();
 		} else {
+			qDebug() << "Received clipboard data from server:" << object.keys();
 			auto mime = new QMimeData();
-			foreach(auto key, object.keys())
-				mime->setData(key, QByteArray::fromBase64(object[key].toString().toUtf8()));
+			foreach(auto key, object.keys()) {
+				auto data = QByteArray::fromBase64(object[key].toString().toUtf8());
+				//handle images seperatly
+				if(key == "application/x-qt-image") {
+					QImage image;
+					QBuffer buffer(&data);
+					buffer.open(QIODevice::ReadOnly);
+					image.load(&buffer, "png");
+					buffer.close();
+					mime->setImageData(image);
+				} else
+					mime->setData(key, data);
+			}
 			this->skipNext = true;
 			this->clipboard->setMimeData(mime);
 		}
@@ -37,7 +50,13 @@ void ClipboardController::setClipboard(const QByteArray &data)
 
 void ClipboardController::syncNow()
 {
-	this->clipDataChanged();
+//	this->clipDataChanged();
+
+	QImage image("C:/Users/Felix/Pictures/418405.jpg");
+	auto mime = new QMimeData();
+	mime->setImageData(image);
+	this->clipboard->setMimeData(mime);
+	qDebug() << mime->data(mime->formats().first()).size();
 }
 
 void ClipboardController::clipDataChanged()
@@ -51,8 +70,18 @@ void ClipboardController::clipDataChanged()
 	auto formats = mime->formats();
 
 	QJsonObject mimeObject;
-	foreach(auto format, formats)
-		mimeObject[format] = QString::fromUtf8(mime->data(format).toBase64());
+	foreach(auto format, formats) {
+		//handle images seperatly
+		if(format == "application/x-qt-image") {
+			auto image = mime->imageData().value<QImage>();
+			QBuffer buffer;
+			buffer.open(QIODevice::WriteOnly);
+			image.save(&buffer, "png");
+			buffer.close();
+			mimeObject[format] = QString::fromUtf8(buffer.buffer().toBase64());
+		} else
+			mimeObject[format] = QString::fromUtf8(mime->data(format).toBase64());
+	}
 
 	QJsonDocument doc(mimeObject);
 	emit clipboardChanged(doc.toBinaryData());
