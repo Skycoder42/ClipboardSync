@@ -14,7 +14,7 @@
    <string>Server Setup</string>
   </property>
   <property name="subTitle">
-   <string>On this page, you can setup the server for this application.</string>
+   <string>On this page, you can setup the server for this application. It will run in the beground to synchronize the clipboard between all clients. &lt;b&gt;NOTE:&lt;/b&gt; If you want to synchronize this computers clipboard, too, you must create a client in the next step.</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

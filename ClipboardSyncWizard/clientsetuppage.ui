@@ -10,7 +10,227 @@
     <height>300</height>
    </rect>
   </property>
+  <property name="title">
+   <string>Setup Client</string>
+  </property>
+  <property name="subTitle">
+   <string>On this page, you can setup the client for this application. It will connect to the server and synchronize the clipboard with all clients.</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="clientNameLabel">
+     <property name="text">
+      <string>Client &amp;Name:</string>
+     </property>
+     <property name="buddy">
+      <cstring>clientNameLineEdit</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="clientNameLineEdit"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="serverADdressLabel">
+     <property name="text">
+      <string>Server A&amp;ddress:</string>
+     </property>
+     <property name="buddy">
+      <cstring>serverADdressLineEdit</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="serverADdressLineEdit"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QCheckBox" name="authenticationCheckBox">
+     <property name="text">
+      <string>&amp;Authentication:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="authenticationLineEdit">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="echoMode">
+      <enum>QLineEdit::Password</enum>
+     </property>
+     <property name="placeholderText">
+      <string>Enter a password</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="secureConnectionLabel">
+     <property name="text">
+      <string>Security:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QRadioButton" name="sBoxUnsecure">
+       <property name="text">
+        <string>&amp;Unsecure</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="sBoxAll">
+       <property name="text">
+        <string>Secure - a&amp;ccept all certificates</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="sBoxCustom">
+       <property name="text">
+        <string>Secure - use c&amp;ustom certificate</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1,0">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPathEdit" name="customCertPathEdit">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="editable">
+          <bool>true</bool>
+         </property>
+         <property name="allowEmptyPath">
+          <bool>false</bool>
+         </property>
+         <property name="placeholder">
+          <string>Select a certificate file</string>
+         </property>
+         <property name="mimeTypeFilters">
+          <stringlist>
+           <string>application/x-x509-ca-cert</string>
+           <string>application/x-pem-file</string>
+           <string>application/octet-stream</string>
+          </stringlist>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="customCertBox">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <item>
+          <property name="text">
+           <string>Auto</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>PEM</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>DER</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="sBoxSystem">
+       <property name="text">
+        <string>Secure - use &amp;system certificates</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QPathEdit</class>
+   <extends>QWidget</extends>
+   <header>qpathedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>authenticationCheckBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>authenticationLineEdit</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>53</x>
+     <y>79</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>184</x>
+     <y>80</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sBoxCustom</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>customCertPathEdit</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>333</x>
+     <y>164</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>357</x>
+     <y>195</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sBoxCustom</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>customCertBox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>421</x>
+     <y>164</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>420</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

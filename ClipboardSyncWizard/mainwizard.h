@@ -28,11 +28,18 @@ public:
 	static const QString ModeField;
 
 	static const QString ServerNameField;
-	static const QString ServerPortField;
 	static const QString ServerAuthPassField;
+	static const QString ServerPortField;
 	static const QString ServerCertPathField;
 	static const QString ServerCertPassField;
 	static const QString ServerLocalField;
+
+	static const QString ClientNameField;
+	static const QString ClientAuthPassField;
+	static const QString ClientUrlField;
+	static const QString ClientSecurityField;
+	static const QString ClientCertPathField;
+	static const QString ClientCertFormatField;
 
 	explicit MainWizard(QWidget *parent = nullptr);
 

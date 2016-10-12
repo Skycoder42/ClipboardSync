@@ -9,10 +9,16 @@
 const QString MainWizard::ModeField(QStringLiteral("mode*"));
 const QString MainWizard::ServerNameField(QStringLiteral("name*"));
 const QString MainWizard::ServerPortField(QStringLiteral("port"));
-const QString MainWizard::ServerAuthPassField(QStringLiteral("authentication"));
+const QString MainWizard::ServerAuthPassField(QStringLiteral("serverAuth"));
 const QString MainWizard::ServerCertPathField(QStringLiteral("securePath"));
 const QString MainWizard::ServerCertPassField(QStringLiteral("securePass"));
 const QString MainWizard::ServerLocalField(QStringLiteral("local"));
+const QString MainWizard::ClientNameField(QStringLiteral("origin*"));
+const QString MainWizard::ClientUrlField(QStringLiteral("url*"));
+const QString MainWizard::ClientAuthPassField(QStringLiteral("clientAuth"));
+const QString MainWizard::ClientSecurityField(QStringLiteral("secureMode*"));
+const QString MainWizard::ClientCertPathField(QStringLiteral("customPath"));
+const QString MainWizard::ClientCertFormatField(QStringLiteral("customFormat"));
 
 MainWizard::MainWizard(QWidget *parent) :
 	QWizard(parent, Qt::WindowCloseButtonHint)
