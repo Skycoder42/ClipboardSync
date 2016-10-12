@@ -36,18 +36,21 @@ HEADERS  += \
 	intropage.h \
 	mainwizard.h \
 	serversetuppage.h \
-	clientsetuppage.h
+	clientsetuppage.h \
+    finalpage.h
 
 SOURCES += main.cpp\
     intropage.cpp \
     mainwizard.cpp \
     serversetuppage.cpp \
-	clientsetuppage.cpp
+	clientsetuppage.cpp \
+    finalpage.cpp
 
 FORMS    += \
     intropage.ui \
     serversetuppage.ui \
-    clientsetuppage.ui
+    clientsetuppage.ui \
+    finalpage.ui
 
 RESOURCES += \
     ../sync_global_res.qrc

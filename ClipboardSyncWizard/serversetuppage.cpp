@@ -12,7 +12,9 @@ ServerSetupPage::ServerSetupPage(QWidget *parent) :
 
 	this->registerField(MainWizard::ServerNameField, this->ui->serverNameLineEdit);
 	this->registerField(MainWizard::ServerPortField, this->ui->serverPortSpinBox);
-	this->registerField(MainWizard::ServerSecureField, this->ui->secureConnectionCheckBox);
+	this->registerField(MainWizard::ServerAuthPassField, this->ui->authenticationLineEdit);
+	this->registerField(MainWizard::ServerCertPathField, this->ui->secureConnectionPathEdit);
+	this->registerField(MainWizard::ServerCertPassField, this->ui->secureConnectionPassphraseEdit);
 	this->registerField(MainWizard::ServerLocalField, this->ui->localhostOnlyCheckBox);
 
 	connect(this->ui->serverNameLineEdit, &QLineEdit::textChanged,
@@ -80,9 +82,12 @@ void ServerSetupPage::cleanupPage()
 	this->ui->serverPortSpinBox->setValue(-1);
 	this->ui->secureConnectionCheckBox->setChecked(false);
 	this->ui->localhostOnlyCheckBox->setChecked(false);
+	this->ui->createClientCheckBox->setChecked(true);
 }
 
 int ServerSetupPage::nextId() const
 {
-	return MainWizard::NoNextPage;
+	return this->ui->createClientCheckBox->isChecked() ?
+				MainWizard::ClientSetupPageId :
+				MainWizard::FinalPageId;
 }

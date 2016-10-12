@@ -12,6 +12,7 @@ public:
 		IntroPageId,
 		ServerSetupPageId,
 		ClientSetupPageId,
+		FinalPageId,
 
 		NoNextPage = -1
 	};
@@ -25,9 +26,12 @@ public:
 	Q_ENUM(WizardMode)
 
 	static const QString ModeField;
+
 	static const QString ServerNameField;
 	static const QString ServerPortField;
-	static const QString ServerSecureField;
+	static const QString ServerAuthPassField;
+	static const QString ServerCertPathField;
+	static const QString ServerCertPassField;
 	static const QString ServerLocalField;
 
 	explicit MainWizard(QWidget *parent = nullptr);
