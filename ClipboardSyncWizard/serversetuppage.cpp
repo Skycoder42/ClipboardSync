@@ -55,13 +55,20 @@ bool ServerSetupPage::validatePage()
 												&caCertificates,
 												this->ui->secureConnectionPassphraseEdit->text().toUtf8());
 		file.close();
-		if(!ok)
+		if(!ok) {
 			DialogMaster::warning(this,
 								  tr("The wizard was not able to verify the files contents. Either the file is corrupted or your passphrase is wrong!"),
 								  tr("Unable to load PKCS#12-File!"));
-		return ok;
-	} else
-		return true;
+			return false;
+		}
+	} else {
+		this->ui->secureConnectionPathEdit->clear();
+		this->ui->secureConnectionPassphraseEdit->clear();
+	}
+
+	if(!this->ui->authenticationCheckBox->isChecked())
+		this->ui->authenticationLineEdit->clear();
+	return true;
 }
 
 bool ServerSetupPage::isComplete() const
@@ -80,7 +87,11 @@ void ServerSetupPage::cleanupPage()
 {
 	this->ui->serverNameLineEdit->clear();
 	this->ui->serverPortSpinBox->setValue(-1);
+	this->ui->authenticationCheckBox->setChecked(false);
+	this->ui->authenticationLineEdit->clear();
 	this->ui->secureConnectionCheckBox->setChecked(false);
+	this->ui->secureConnectionPathEdit->clear();
+	this->ui->secureConnectionPassphraseEdit->clear();
 	this->ui->localhostOnlyCheckBox->setChecked(false);
 	this->ui->createClientCheckBox->setChecked(true);
 }

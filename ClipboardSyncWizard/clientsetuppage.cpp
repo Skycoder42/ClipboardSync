@@ -84,6 +84,8 @@ void ClientSetupPage::cleanupPage()
 
 bool ClientSetupPage::validatePage()
 {
+	if(!this->ui->authenticationCheckBox->isChecked())
+		this->ui->authenticationLineEdit->clear();
 	return true;
 }
 
