@@ -8,7 +8,7 @@ IntroPage::IntroPage(QWidget *parent) :
 {
 	ui->setupUi(this);
 
-	this->registerField(MainWizard::ModeField,
+	this->registerField(REQUIRED_FIELD(MainWizard::ModeField),
 						this,
 						"nextMode",
 						SIGNAL(nextModeChanged(MainWizard::WizardMode)));

@@ -10,7 +10,7 @@ ServerSetupPage::ServerSetupPage(QWidget *parent) :
 {
 	ui->setupUi(this);
 
-	this->registerField(MainWizard::ServerNameField, this->ui->serverNameLineEdit);
+	this->registerField(REQUIRED_FIELD(MainWizard::ServerNameField), this->ui->serverNameLineEdit);
 	this->registerField(MainWizard::ServerPortField, this->ui->serverPortSpinBox);
 	this->registerField(MainWizard::ServerAuthPassField, this->ui->authenticationLineEdit);
 	this->registerField(MainWizard::ServerCertPathField, this->ui->secureConnectionPathEdit);

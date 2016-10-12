@@ -42,10 +42,8 @@ public:
 	static const QString ClientCertFormatField;
 
 	explicit MainWizard(QWidget *parent = nullptr);
-
-signals:
-
-public slots:
 };
+
+#define REQUIRED_FIELD(x) (x + QLatin1Char('*'))
 
 #endif // MAINWIZARD_H
