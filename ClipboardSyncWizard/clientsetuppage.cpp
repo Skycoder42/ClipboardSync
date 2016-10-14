@@ -1,6 +1,8 @@
 #include "clientsetuppage.h"
 #include "ui_clientsetuppage.h"
 #include <QRegularExpressionValidator>
+#include <QSslCertificate>
+#include <dialogmaster.h>
 
 ClientSetupPage::ClientSetupPage(QWidget *parent) :
 	QWizardPage(parent),
@@ -84,6 +86,35 @@ void ClientSetupPage::cleanupPage()
 
 bool ClientSetupPage::validatePage()
 {
+	if(this->ui->sBoxCustom->isChecked()) {
+		do {//create "break" context
+			if(this->ui->customCertBox->currentIndex() != 2) {//Auto or PEM
+				auto certs = QSslCertificate::fromPath(this->ui->customCertPathEdit->path(), QSsl::Pem);
+				if(!certs.isEmpty()) {
+					this->fType = QSsl::Pem;
+					emit formatChanged(QSsl::Pem);
+					break;
+				}
+			}
+
+			if(this->ui->customCertBox->currentIndex() != 1) {//Auto or DER
+				auto certs = QSslCertificate::fromPath(this->ui->customCertPathEdit->path(), QSsl::Der);
+				if(!certs.isEmpty()) {
+					this->fType = QSsl::Der;
+					emit formatChanged(QSsl::Der);
+					break;
+				}
+			}
+
+			DialogMaster::warning(this,
+								  tr("The application was not able to verify the certificate with the Format <i>%1</i>. "
+									 "Either the format is wrong or the file is corrupted!")
+								  .arg(this->ui->customCertBox->currentText()),
+								  tr("Unable to verify certificate!"));
+			return false;
+		} while(false);
+	}
+
 	if(!this->ui->authenticationCheckBox->isChecked())
 		this->ui->authenticationLineEdit->clear();
 	return true;

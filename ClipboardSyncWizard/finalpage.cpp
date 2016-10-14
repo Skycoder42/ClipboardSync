@@ -20,12 +20,16 @@ FinalPage::~FinalPage()
 
 void FinalPage::initializePage()
 {
+	connect(this->wizard(), &QWizard::customButtonClicked,
+			this, &FinalPage::doCreate);
 	this->wizard()->setOption(QWizard::HaveCustomButton1, true);
 	this->reloadText(false);
 }
 
 void FinalPage::cleanupPage()
 {
+	disconnect(this->wizard(), &QWizard::customButtonClicked,
+			   this, &FinalPage::doCreate);
 	this->ui->textBrowser->clear();
 	this->wizard()->setOption(QWizard::HaveCustomButton1, false);
 }
@@ -105,7 +109,7 @@ void FinalPage::reloadText(bool showPasswords)
 		case MainWizard::SecureCustom:
 			detailsText += tr("&nbsp;– Secure Connection - Accept <i>%1</i> (<b>%2</b> Format)<br/>")
 						   .arg(this->wizard()->field(MainWizard::ClientCertPathField).toString())
-						   .arg(this->wizard()->field(MainWizard::ClientCertFormatField).toString());
+						   .arg(this->wizard()->field(MainWizard::ClientCertFormatField).toInt() == 0 ? tr("PEM") : tr("DER"));
 			break;
 		case MainWizard::SecureSystem:
 			detailsText += tr("&nbsp;– Secure Connection - Accept system authorities<br/>");
@@ -116,4 +120,13 @@ void FinalPage::reloadText(bool showPasswords)
 	}
 
 	this->ui->textBrowser->setHtml(detailsText);
+}
+
+void FinalPage::doCreate(int which)
+{
+	if(which == QWizard::CustomButton1) {
+		this->wizard()->setOption(QWizard::DisabledBackButtonOnLastPage);
+		this->wizard()->button(QWizard::CancelButton)->setEnabled(false);
+		this->wizard()->button(QWizard::CustomButton1)->setEnabled(false);
+	}
 }

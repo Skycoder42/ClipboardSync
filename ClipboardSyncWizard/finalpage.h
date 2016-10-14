@@ -24,6 +24,7 @@ public:
 
 private slots:
 	void reloadText(bool showPasswords);
+	void doCreate(int which);
 
 private:
 	Ui::FinalPage *ui;
