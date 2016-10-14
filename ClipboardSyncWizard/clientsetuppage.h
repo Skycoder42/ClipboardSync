@@ -13,17 +13,10 @@ class ClientSetupPage : public QWizardPage
 {
 	Q_OBJECT
 
-	Q_PROPERTY(SecurityMode securityMode READ securityMode NOTIFY securityModeChanged)
+	Q_PROPERTY(MainWizard::SecurityMode securityMode READ securityMode NOTIFY securityModeChanged)
 	Q_PROPERTY(QSsl::EncodingFormat format READ format NOTIFY formatChanged)
 
 public:
-	enum SecurityMode {
-		NoSecurity,
-		SecureAll,
-		SecureCustom,
-		SecureSystem
-	};
-	Q_ENUM(SecurityMode)
 
 	explicit ClientSetupPage(QWidget *parent = nullptr);
 	~ClientSetupPage();
@@ -34,11 +27,11 @@ public:
 	bool isComplete() const override;
 	int nextId() const override;
 
-	SecurityMode securityMode() const;
+	MainWizard::SecurityMode securityMode() const;
 	QSsl::EncodingFormat format() const;
 
 signals:
-	void securityModeChanged(SecurityMode securityMode);
+	void securityModeChanged(MainWizard::SecurityMode securityMode);
 	void formatChanged(QSsl::EncodingFormat format);
 
 private:

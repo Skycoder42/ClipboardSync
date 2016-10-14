@@ -106,16 +106,16 @@ int ClientSetupPage::nextId() const
 	return MainWizard::FinalPageId;
 }
 
-ClientSetupPage::SecurityMode ClientSetupPage::securityMode() const
+MainWizard::SecurityMode ClientSetupPage::securityMode() const
 {
 	if(this->ui->sBoxUnsecure->isChecked())
-		return NoSecurity;
+		return MainWizard::NoSecurity;
 	else if(this->ui->sBoxAll->isChecked())
-		return SecureAll;
+		return MainWizard::SecureAll;
 	else if(this->ui->sBoxCustom->isChecked())
-		return SecureCustom;
+		return MainWizard::SecureCustom;
 	else if(this->ui->sBoxSystem->isChecked())
-		return SecureSystem;
+		return MainWizard::SecureSystem;
 	else
 		Q_UNREACHABLE();
 }

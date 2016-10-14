@@ -1,0 +1,52 @@
+#include "finalpage.h"
+#include "ui_finalpage.h"
+
+FinalPage::FinalPage(QWidget *parent) :
+	QWizardPage(parent),
+	ui(new Ui::FinalPage)
+{
+	ui->setupUi(this);
+}
+
+FinalPage::~FinalPage()
+{
+	delete ui;
+}
+
+void FinalPage::initializePage()
+{
+	QString detailsText;
+	if(this->wizard()->field(MainWizard::ModeField) == MainWizard::ServerMode) {
+		detailsText += tr("<p><u>Server:</u><br/>");
+		detailsText += tr("&nbsp;– Name: %1<br/>").arg(this->wizard()->field(MainWizard::ServerNameField).toString());
+		auto port = this->wizard()->field(MainWizard::ServerPortField).toInt();
+		detailsText += tr("&nbsp;– Port: %1<br/>").arg(port == 0 ? tr("Automatic Port") : QString::number(port));
+		detailsText += tr("&nbsp;– Authentication: %1<br/>")
+					   .arg(this->wizard()->field(MainWizard::ServerAuthPassField)
+							.toString()
+							.isEmpty() ?
+								tr("Disabled") :
+								tr("Enabled"));
+		detailsText += QStringLiteral("</p>");
+		auto certPath = this->wizard()->field(MainWizard::ServerCertPathField).toString();
+		if(!certPath.isEmpty())
+			detailsText += tr("&nbsp;– Name: %1<br/>").arg(certPath);
+	}
+
+	this->ui->textBrowser->setHtml(detailsText);
+}
+
+void FinalPage::cleanupPage()
+{
+	this->ui->textBrowser->clear();
+}
+
+bool FinalPage::validatePage()
+{
+	return true;
+}
+
+int FinalPage::nextId() const
+{
+	return MainWizard::NoNextPage;
+}

@@ -2,6 +2,7 @@
 #define FINALPAGE_H
 
 #include <QWizardPage>
+#include "mainwizard.h"
 
 namespace Ui {
 class FinalPage;
@@ -15,8 +16,18 @@ public:
 	explicit FinalPage(QWidget *parent = nullptr);
 	~FinalPage();
 
+	void initializePage() override;
+	void cleanupPage() override;
+	bool validatePage() override;
+	bool isComplete() const override;
+	int nextId() const override;
+
+private slots:
+	void reloadText(bool showPasswords);
+
 private:
 	Ui::FinalPage *ui;
+
 };
 
 #endif // FINALPAGE_H

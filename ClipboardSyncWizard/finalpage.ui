@@ -14,8 +14,32 @@
    <string>Summary</string>
   </property>
   <property name="subTitle">
-   <string>These are your settings to create a server/client. Verify them and finish the wizard to create them.</string>
+   <string>These are your settings to create a server/client. Verify them and finish the wizard to create them. (Red parts do &lt;b&gt;not&lt;/b&gt; mean error, but probably unsecure settings, that should be avoided if possible).</string>
   </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTextBrowser" name="textBrowser">
+     <property name="font">
+      <font>
+       <family>Consolas</family>
+      </font>
+     </property>
+     <property name="lineWrapMode">
+      <enum>QTextEdit::NoWrap</enum>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="showPassBox">
+     <property name="text">
+      <string>Show &amp;Passwords</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>
