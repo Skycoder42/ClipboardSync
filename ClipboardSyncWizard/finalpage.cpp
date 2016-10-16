@@ -150,7 +150,7 @@ void FinalPage::errorOccured(bool isServer, const QString &name, const QString &
 	this->createIndicator->close();
 }
 
-void FinalPage::serverCreated(const QString &name, quint16 port, const QStringList &knownAddresses)
+void FinalPage::serverCreated(const QString &name, quint16 port, const QStringList &localAddresses, const QString &remoteAddress)
 {
 	this->createIndicator->close();
 	this->complete = true;
@@ -163,10 +163,11 @@ void FinalPage::serverCreated(const QString &name, quint16 port, const QStringLi
 												  this);
 	config.title = tr("Successfully created %1 Server").arg(name);
 	config.windowTitle = tr("Server created");
-	config.details = tr("Port: %1\n"
-						"Known local IP-Addresses:")
-					 .arg(port);
-	foreach(auto info, knownAddresses)
+	config.details = tr("Port: %1\n").arg(port);
+	if(remoteAddress != QStringLiteral("0.0.0.0"))
+		config.details += tr("Remote Address (Internet): %1\n").arg(remoteAddress);
+	config.details += tr("Known local IP-Addresses:");
+	foreach(auto info, localAddresses)
 		config.details.append(tr("\n - ") + info);
 
 	DialogMaster::messageBox(config);

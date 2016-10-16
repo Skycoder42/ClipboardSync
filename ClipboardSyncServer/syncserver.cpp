@@ -9,6 +9,9 @@
 #include <QJsonObject>
 #include <QNetworkInterface>
 #include <QHostAddress>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QUrl>
 
 #include <QDebug>
 
@@ -17,9 +20,14 @@ SyncServer::SyncServer(const QString &serverName, QObject *parent) :
 	server(nullptr),
 	serverName(serverName),
 	password(),
+	isLocal(false),
 	clients(),
-	currentState()
-{}
+	currentState(),
+	ipNam(new QNetworkAccessManager(this))
+{
+	connect(this->ipNam, &QNetworkAccessManager::finished,
+			this, &SyncServer::ipReply);
+}
 
 bool SyncServer::setupSecurity(const QString &p12_file, const QString &passphrase)
 {
@@ -70,6 +78,7 @@ bool SyncServer::setupSecurity(const QString &p12_file, const QString &passphras
 
 bool SyncServer::createServer(int port, const QString &password, bool local)
 {
+	this->isLocal = local;
 	if(!this->server)
 		this->server = new QWebSocketServer(this->serverName, QWebSocketServer::NonSecureMode, this);
 
@@ -140,6 +149,17 @@ void SyncServer::printNetInfo() const
 	qInfo() << "netinfo:" << resData.constData();
 }
 
+void SyncServer::printRemoteInfo() const
+{
+	if(this->isLocal)
+		qInfo() << "remoteinfo: 0.0.0.0";
+	else {
+		QNetworkRequest request(QStringLiteral("https://api.ipify.org"));
+		request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+		this->ipNam->get(request);
+	}
+}
+
 void SyncServer::performSync(ServerClient *origin, const QByteArray &data)
 {
 	this->currentState = data;
@@ -197,4 +217,13 @@ void SyncServer::sslErrors(const QList<QSslError> &errors)
 				   << "):"
 				   << error.errorString().toUtf8();
 	}
+}
+
+void SyncServer::ipReply(QNetworkReply *reply)
+{
+	if(reply->error() == QNetworkReply::NoError)
+		qInfo() << "remoteinfo:" << reply->readAll().constData();
+	else
+		qInfo() << "remoteinfo: 0.0.0.0";
+	reply->deleteLater();
 }

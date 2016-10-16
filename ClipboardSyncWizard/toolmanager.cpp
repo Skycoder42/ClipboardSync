@@ -78,7 +78,7 @@ void ToolManager::procStarted()
 	auto proc = qobject_cast<QProcess*>(QObject::sender());
 	if(proc) {//TODO
 		if(this->isServer(proc))
-			proc->write("port\nnetinfo\n");
+			proc->write("port\nnetinfo\nremoteinfo\n");
 	}
 }
 
@@ -122,12 +122,14 @@ void ToolManager::procOutReady()
 					auto &status = this->portAwaiters[proc];
 
 					if(command == "port")
-						status.first = param.toUShort();
+						status.port = param.toUShort();
 					else if(command == "netinfo")
-						status.second = QString::fromUtf8(param).split(QLatin1Char(';'), QString::SkipEmptyParts);
+						status.localAddresses = QString::fromUtf8(param).split(QLatin1Char(';'), QString::SkipEmptyParts);
+					else if(command == "remoteinfo")
+						status.remoteAddress = QString::fromUtf8(param);
 
-					if(status.first != 0 && !status.second.isEmpty()) {
-						emit serverCreated(this->procName(proc), status.first, status.second);
+					if(status.port != 0 && !status.localAddresses.isEmpty() && !status.remoteAddress.isNull()) {
+						emit serverCreated(this->procName(proc), status.port, status.localAddresses, status.remoteAddress);
 						this->portAwaiters.remove(proc);
 					}
 				}

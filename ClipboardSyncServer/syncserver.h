@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QWebSocketServer>
+#include <QNetworkAccessManager>
 #include "serverclient.h"
 
 class SyncServer : public QObject
@@ -23,6 +24,7 @@ public slots:
 	void clear();
 	void printPort() const;
 	void printNetInfo() const;
+	void printRemoteInfo() const;
 	void performSync(ServerClient *origin, const QByteArray &data);
 
 	void closeNamedClient(const QString &name);
@@ -34,13 +36,18 @@ private slots:
 	void serverError(QWebSocketProtocol::CloseCode closeCode);
 	void sslErrors(const QList<QSslError> &errors);
 
+	void ipReply(QNetworkReply *reply);
+
 private:
 	QWebSocketServer *server;
 	QString serverName;
 	QString password;
+	bool isLocal;
 
 	QList<ServerClient*> clients;
 	QByteArray currentState;
+
+	QNetworkAccessManager *ipNam;
 };
 
 #endif // SYNCSERVER_H

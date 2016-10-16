@@ -23,7 +23,7 @@ public slots:
 
 signals:
 	void errorOccured(bool isServer, const QString &name, const QString &error);
-	void serverCreated(const QString &name, quint16 port, const QStringList &knownAddresses);
+	void serverCreated(const QString &name, quint16 port, const QStringList &localAddresses, const QString &remoteAddress);
 
 private slots:
 	void procStarted();
@@ -33,12 +33,18 @@ private slots:
 	void procOutReady();
 
 private:
+	struct ServerInfo {
+		int port;
+		QStringList localAddresses;
+		QString remoteAddress;
+	};
+
 	QHash<QString, QProcess*> servers;
 	QHash<QString, QProcess*> clients;
 
 	QHash<QProcess*, QByteArray> outBuffer;
 
-	QHash<QProcess*, QPair<int, QStringList>> portAwaiters;
+	QHash<QProcess*, ServerInfo> portAwaiters;
 
 	QString procName(QProcess *proccess) const;
 	bool isServer(QProcess *proccess) const;
