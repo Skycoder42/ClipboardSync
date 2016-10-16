@@ -20,7 +20,7 @@ const QString MainWizard::ClientSecurityField(QStringLiteral("secureMode"));
 const QString MainWizard::ClientCertPathField(QStringLiteral("customPath"));
 const QString MainWizard::ClientCertFormatField(QStringLiteral("customFormat"));
 
-MainWizard::MainWizard(QWidget *parent) :
+MainWizard::MainWizard(ToolManager *manager, QWidget *parent) :
 	QWizard(parent, Qt::WindowCloseButtonHint)
 {
 	this->setWindowTitle(QApplication::applicationDisplayName() +
@@ -31,6 +31,12 @@ MainWizard::MainWizard(QWidget *parent) :
 	this->setPage(IntroPageId, new IntroPage(this));
 	this->setPage(ServerSetupPageId, new ServerSetupPage(this));
 	this->setPage(ClientSetupPageId, new ClientSetupPage(this));
-	this->setPage(FinalPageId, new FinalPage(this));
+	this->setPage(FinalPageId, new FinalPage(manager, this));
 	this->setStartId(IntroPageId);
+}
+
+bool MainWizard::createInstance(ToolManager *manager, QWidget *parent)
+{
+	MainWizard wizard(manager, parent);
+	return wizard.exec() == QDialog::Accepted;
 }

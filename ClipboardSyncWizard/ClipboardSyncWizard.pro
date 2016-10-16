@@ -37,14 +37,17 @@ HEADERS  += \
 	mainwizard.h \
 	serversetuppage.h \
 	clientsetuppage.h \
-    finalpage.h
+    finalpage.h \
+    toolmanager.h \
+    app.h
 
-SOURCES += main.cpp\
-    intropage.cpp \
+SOURCES += intropage.cpp \
     mainwizard.cpp \
     serversetuppage.cpp \
 	clientsetuppage.cpp \
-    finalpage.cpp
+    finalpage.cpp \
+    toolmanager.cpp \
+    app.cpp
 
 FORMS    += \
     intropage.ui \

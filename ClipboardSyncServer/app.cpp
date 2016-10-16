@@ -47,7 +47,7 @@ int App::exec()
 						 "passphrase"
 					 });
 	parser.addOption({
-						 {"l", "local"},
+						 {"l", "local", "localonly"},
 						 "Only accept connections from localhost, instead of all connections."
 					 });
 	parser.process(*this);
@@ -85,6 +85,8 @@ void App::commandReceived(const QByteArray &command)
 		this->syncServer->syncAll();
 	else if(command == "clear")
 		this->syncServer->clear();
+	else if(command == "port")
+		this->syncServer->printPort();
 	else if(command.startsWith("close")) {
 		const static QRegularExpression regex(QStringLiteral(R"__(^close(?:\s+)([^\s].*)$)__"));
 		auto match = regex.match(command);

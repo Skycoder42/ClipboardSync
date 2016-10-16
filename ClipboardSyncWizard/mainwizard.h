@@ -2,6 +2,7 @@
 #define MAINWIZARD_H
 
 #include <QWizard>
+class ToolManager;
 
 class MainWizard : public QWizard
 {
@@ -49,7 +50,9 @@ public:
 	static const QString ClientCertPathField;
 	static const QString ClientCertFormatField;
 
-	explicit MainWizard(QWidget *parent = nullptr);
+	explicit MainWizard(ToolManager *manager, QWidget *parent = nullptr);
+
+	static bool createInstance(ToolManager *manager, QWidget *parent = nullptr);
 };
 
 #define REQUIRED_FIELD(x) (x + QLatin1Char('*'))

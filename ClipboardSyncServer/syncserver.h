@@ -21,6 +21,7 @@ public slots:
 
 	void syncAll();
 	void clear();	
+	void printPort() const;
 	void performSync(ServerClient *origin, const QByteArray &data);
 
 	void closeNamedClient(const QString &name);

@@ -89,6 +89,7 @@ bool SyncServer::createServer(int port, const QString &password, bool local)
 		port = 0;
 	auto ok = this->server->listen(local ? QHostAddress::LocalHost : QHostAddress::Any, (quint16)port);
 	if(ok) {
+		this->printPort();
 		qDebug() << "Server Running on port"
 				 << this->server->serverPort()
 				 << "in"
@@ -120,6 +121,11 @@ void SyncServer::clear()
 {
 	this->currentState = QJsonDocument(QJsonObject()).toBinaryData();
 	this->syncAll();
+}
+
+void SyncServer::printPort() const
+{
+	qInfo() << "Port:" << this->server->serverPort();
 }
 
 void SyncServer::performSync(ServerClient *origin, const QByteArray &data)

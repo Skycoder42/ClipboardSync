@@ -1,21 +1,31 @@
 #include "finalpage.h"
 #include "ui_finalpage.h"
+#include "dialogmaster.h"
 
-FinalPage::FinalPage(QWidget *parent) :
+FinalPage::FinalPage(ToolManager *manager, QWidget *parent) :
 	QWizardPage(parent),
-	ui(new Ui::FinalPage)
+	ui(new Ui::FinalPage),
+	manager(manager),
+	createIndicator(DialogMaster::createProgress(this, tr("Creating Instances. Please wait…"))),
+	complete(false)
 {
-	ui->setupUi(this);
+	this->ui->setupUi(this);
+	this->createIndicator->cancel();
 
 	connect(this->ui->showPassBox, &QCheckBox::toggled,
 			this, &FinalPage::reloadText);
 
 	this->setButtonText(QWizard::CustomButton1, tr("Create Instances"));
+
+	connect(this->manager, &ToolManager::errorOccured,
+			this, &FinalPage::errorOccured);
+	connect(this->manager, &ToolManager::serverCreated,
+			this, &FinalPage::serverCreated);
 }
 
 FinalPage::~FinalPage()
 {
-	delete ui;
+	delete this->ui;
 }
 
 void FinalPage::initializePage()
@@ -41,7 +51,7 @@ bool FinalPage::validatePage()
 
 bool FinalPage::isComplete() const
 {
-	return false;
+	return this->complete;
 }
 
 int FinalPage::nextId() const
@@ -53,15 +63,15 @@ void FinalPage::reloadText(bool showPasswords)
 {
 	QString detailsText;
 
-	if(this->wizard()->field(MainWizard::ModeField) == MainWizard::ServerMode) {
+	if(this->field(MainWizard::ModeField) == MainWizard::ServerMode) {
 		detailsText += tr("<p><u>Server:</u><br/>");
 
-		detailsText += tr("&nbsp;– Name: <i>%1</i><br/>").arg(this->wizard()->field(MainWizard::ServerNameField).toString());
+		detailsText += tr("&nbsp;– Name: <i>%1</i><br/>").arg(this->field(MainWizard::ServerNameField).toString());
 
-		auto port = this->wizard()->field(MainWizard::ServerPortField).toInt();
+		auto port = this->field(MainWizard::ServerPortField).toInt();
 		detailsText += tr("&nbsp;– Port: <i>%1</i><br/>").arg(port == 0 ? tr("Automatic Port") : QString::number(port));
 
-		auto pass = this->wizard()->field(MainWizard::ServerAuthPassField).toString();
+		auto pass = this->field(MainWizard::ServerAuthPassField).toString();
 		if(!pass.isEmpty()) {
 			if(showPasswords)
 				detailsText += tr("&nbsp;– Authentication: <i>%1</i><br/>").arg(pass);
@@ -70,13 +80,13 @@ void FinalPage::reloadText(bool showPasswords)
 		} else
 			detailsText += tr("<font color=\"red\">&nbsp;– No Authentication</font><br/>");
 
-		auto certPath = this->wizard()->field(MainWizard::ServerCertPathField).toString();
+		auto certPath = this->field(MainWizard::ServerCertPathField).toString();
 		if(!certPath.isEmpty())
 			detailsText += tr("&nbsp;– Certificate: <i>%1</i><br/>").arg(certPath);
 		else
 			detailsText += tr("<font color=\"red\">&nbsp;– Unsecure Connection</font><br/>");
 
-		if(this->wizard()->field(MainWizard::ServerLocalField).toBool())
+		if(this->field(MainWizard::ServerLocalField).toBool())
 			detailsText += tr("&nbsp;– Accept local network clients only<br/>");
 		else
 			detailsText += tr("&nbsp;– Accept all clients<br/>");
@@ -84,13 +94,13 @@ void FinalPage::reloadText(bool showPasswords)
 		detailsText += QStringLiteral("</p>");
 	}
 
-	if(!this->wizard()->field(MainWizard::ClientNameField).toString().isEmpty()) {
+	if(!this->field(MainWizard::ClientNameField).toString().isEmpty()) {
 		detailsText += tr("<p><u>Client:</u><br/>");
 
-		detailsText += tr("&nbsp;– Name: <i>%1</i><br/>").arg(this->wizard()->field(MainWizard::ClientNameField).toString());
-		detailsText += tr("&nbsp;– Server Identity: <i>%1</i><br/>").arg(this->wizard()->field(MainWizard::ClientUrlField).toString());
+		detailsText += tr("&nbsp;– Name: <i>%1</i><br/>").arg(this->field(MainWizard::ClientNameField).toString());
+		detailsText += tr("&nbsp;– Server Identity: <i>%1</i><br/>").arg(this->field(MainWizard::ClientUrlField).toString());
 
-		auto pass = this->wizard()->field(MainWizard::ClientAuthPassField).toString();
+		auto pass = this->field(MainWizard::ClientAuthPassField).toString();
 		if(!pass.isEmpty()) {
 			if(showPasswords)
 				detailsText += tr("&nbsp;– Authentication: <i>%1</i><br/>").arg(pass);
@@ -99,7 +109,7 @@ void FinalPage::reloadText(bool showPasswords)
 		} else
 			detailsText += tr("<font color=\"red\">&nbsp;– No Authentication</font><br/>");
 
-		switch(this->wizard()->field(MainWizard::ClientSecurityField).toInt()) {
+		switch(this->field(MainWizard::ClientSecurityField).toInt()) {
 		case MainWizard::NoSecurity:
 			detailsText += tr("<font color=\"red\">&nbsp;– Unsecure Connection</font><br/>");
 			break;
@@ -108,8 +118,8 @@ void FinalPage::reloadText(bool showPasswords)
 			break;
 		case MainWizard::SecureCustom:
 			detailsText += tr("&nbsp;– Secure Connection - Accept <i>%1</i> (<b>%2</b> Format)<br/>")
-						   .arg(this->wizard()->field(MainWizard::ClientCertPathField).toString())
-						   .arg(this->wizard()->field(MainWizard::ClientCertFormatField).toInt() == 0 ? tr("PEM") : tr("DER"));
+						   .arg(this->field(MainWizard::ClientCertPathField).toString())
+						   .arg(this->field(MainWizard::ClientCertFormatField).toInt() == 0 ? tr("PEM") : tr("DER"));
 			break;
 		case MainWizard::SecureSystem:
 			detailsText += tr("&nbsp;– Secure Connection - Accept system authorities<br/>");
@@ -128,5 +138,49 @@ void FinalPage::doCreate(int which)
 		this->wizard()->setOption(QWizard::DisabledBackButtonOnLastPage);
 		this->wizard()->button(QWizard::CancelButton)->setEnabled(false);
 		this->wizard()->button(QWizard::CustomButton1)->setEnabled(false);
+
+		this->createIndicator->open();
+		if(this->field(MainWizard::ModeField) == MainWizard::ServerMode)
+			this->createServer();
 	}
+}
+
+void FinalPage::errorOccured(bool isServer, const QString &name, const QString &error)
+{
+	this->createIndicator->close();
+}
+
+void FinalPage::serverCreated(const QString &name, quint16 port, const QList<ToolManager::IpInfo> &knownAddresses)
+{
+	this->createIndicator->close();
+	this->complete = true;
+	emit completeChanged();
+
+	auto config = DialogMaster::createInformation(tr("Server \"%1\" successfully created. It runs on port %2. "
+													 "Check the Details for a list of all IPs")
+												  .arg(name)
+												  .arg(port),
+												  this);
+	config.title = tr("Successfully created %1 Server").arg(name);
+	config.windowTitle = tr("Server created");
+	config.details = tr("Port: %1\n\n"
+						"Known IP-Addresses:\n")
+					 .arg(port);
+	foreach(auto info, knownAddresses) {
+		config.details.append(tr(" - %1: %2")
+							  .arg(info.first)
+							  .arg(info.second.toString()));
+	}
+
+	DialogMaster::messageBox(config);
+}
+
+void FinalPage::createServer()
+{
+	this->manager->createServer(this->field(MainWizard::ServerNameField).toString(),
+								this->field(MainWizard::ServerPortField).toInt(),
+								this->field(MainWizard::ServerAuthPassField).toString(),
+								this->field(MainWizard::ServerCertPathField).toString(),
+								this->field(MainWizard::ServerCertPassField).toString(),
+								this->field(MainWizard::ServerLocalField).toBool());
 }
