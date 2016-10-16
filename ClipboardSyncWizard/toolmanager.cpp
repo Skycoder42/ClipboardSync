@@ -69,7 +69,7 @@ void ToolManager::createServer(const QString &name, const int port, const QStrin
 #endif
 
 	this->servers.insert(name, proc);
-	this->portAwaiters.append(proc);
+	this->portAwaiters.insert(proc, {0, {}});
 	proc->start(QIODevice::ReadWrite);
 }
 
@@ -77,6 +77,8 @@ void ToolManager::procStarted()
 {
 	auto proc = qobject_cast<QProcess*>(QObject::sender());
 	if(proc) {//TODO
+		if(this->isServer(proc))
+			proc->write("port\nnetinfo\n");
 	}
 }
 
@@ -115,9 +117,19 @@ void ToolManager::procOutReady()
 			auto param = info.mid(sIndex + 1).simplified();
 
 			if(this->isServer(proc)) {
-				if(command == "port" && this->portAwaiters.contains(proc)) {
-					this->portAwaiters.removeOne(proc);
-					emit serverCreated(this->procName(proc), param.toUShort(), {});
+				//init data
+				if(this->portAwaiters.contains(proc)) {
+					auto &status = this->portAwaiters[proc];
+
+					if(command == "port")
+						status.first = param.toUShort();
+					else if(command == "netinfo")
+						status.second = QString::fromUtf8(param).split(QLatin1Char(';'), QString::SkipEmptyParts);
+
+					if(status.first != 0 && !status.second.isEmpty()) {
+						emit serverCreated(this->procName(proc), status.first, status.second);
+						this->portAwaiters.remove(proc);
+					}
 				}
 			} else {
 
@@ -150,6 +162,6 @@ void ToolManager::remove(QProcess *proccess)
 {
 	this->servers.remove(this->servers.key(proccess));
 	this->clients.remove(this->servers.key(proccess));
-	this->portAwaiters.removeOne(proccess);
+	this->portAwaiters.remove(proccess);
 	proccess->deleteLater();
 }

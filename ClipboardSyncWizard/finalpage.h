@@ -29,7 +29,7 @@ private slots:
 	void doCreate(int which);
 
 	void errorOccured(bool isServer, const QString &name, const QString &error);
-	void serverCreated(const QString &name, quint16 port, const QList<ToolManager::IpInfo> &knownAddresses);
+	void serverCreated(const QString &name, quint16 port, const QStringList &knownAddresses);
 
 private:
 	Ui::FinalPage *ui;

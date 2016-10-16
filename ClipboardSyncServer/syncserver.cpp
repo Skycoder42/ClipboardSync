@@ -7,6 +7,8 @@
 #include <QSslKey>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QNetworkInterface>
+#include <QHostAddress>
 
 #include <QDebug>
 
@@ -89,7 +91,6 @@ bool SyncServer::createServer(int port, const QString &password, bool local)
 		port = 0;
 	auto ok = this->server->listen(local ? QHostAddress::LocalHost : QHostAddress::Any, (quint16)port);
 	if(ok) {
-		this->printPort();
 		qDebug() << "Server Running on port"
 				 << this->server->serverPort()
 				 << "in"
@@ -125,7 +126,18 @@ void SyncServer::clear()
 
 void SyncServer::printPort() const
 {
-	qInfo() << "Port:" << this->server->serverPort();
+	qInfo() << "port:" << this->server->serverPort();
+}
+
+void SyncServer::printNetInfo() const
+{
+	auto allAddresses = QNetworkInterface::allAddresses();
+	QByteArray resData;
+	foreach (QHostAddress address, allAddresses) {
+		if(address.protocol() == QAbstractSocket::IPv4Protocol)
+			resData.append(address.toString() + ";");
+	}
+	qInfo() << "netinfo:" << resData.constData();
 }
 
 void SyncServer::performSync(ServerClient *origin, const QByteArray &data)

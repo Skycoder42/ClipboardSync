@@ -87,6 +87,8 @@ void App::commandReceived(const QByteArray &command)
 		this->syncServer->clear();
 	else if(command == "port")
 		this->syncServer->printPort();
+	else if(command == "netinfo")
+		this->syncServer->printNetInfo();
 	else if(command.startsWith("close")) {
 		const static QRegularExpression regex(QStringLiteral(R"__(^close(?:\s+)([^\s].*)$)__"));
 		auto match = regex.match(command);

@@ -10,8 +10,6 @@ class ToolManager : public QObject
 {
 	Q_OBJECT
 public:
-	typedef QPair<QString, QHostAddress> IpInfo;
-
 	explicit ToolManager(QObject *parent = nullptr);
 	~ToolManager();
 
@@ -25,7 +23,7 @@ public slots:
 
 signals:
 	void errorOccured(bool isServer, const QString &name, const QString &error);
-	void serverCreated(const QString &name, quint16 port, const QList<IpInfo> &knownAddresses);
+	void serverCreated(const QString &name, quint16 port, const QStringList &knownAddresses);
 
 private slots:
 	void procStarted();
@@ -40,7 +38,7 @@ private:
 
 	QHash<QProcess*, QByteArray> outBuffer;
 
-	QList<QProcess*> portAwaiters;
+	QHash<QProcess*, QPair<int, QStringList>> portAwaiters;
 
 	QString procName(QProcess *proccess) const;
 	bool isServer(QProcess *proccess) const;
