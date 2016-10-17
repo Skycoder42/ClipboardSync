@@ -89,8 +89,8 @@ void ToolManager::procErrorOccurred(QProcess::ProcessError error)
 {
 	auto proc = qobject_cast<QProcess*>(QObject::sender());
 	if(proc && this->isActive(proc)) {
+		emit showMessage(QtMsgType::QtCriticalMsg, this->generateTitle(proc, tr("Error occured!")), proc->errorString());
 		this->remove(proc);
-		emit errorOccured(this->isServer(proc), this->procName(proc), proc->errorString());
 	}
 }
 
@@ -101,7 +101,7 @@ void ToolManager::procFinished(int exitCode, QProcess::ExitStatus exitStatus)
 		if(exitStatus != QProcess::NormalExit)
 			this->procErrorOccurred(QProcess::Crashed);
 		else
-			emit errorOccured(this->isServer(proc), this->procName(proc), tr("Proccess was closed!"));
+			emit showMessage(QtMsgType::QtInfoMsg, this->generateTitle(proc, tr("Finished!")), tr("The Process was closed!"));
 		this->remove(proc);
 	}
 }
@@ -143,32 +143,40 @@ void ToolManager::procOutReady()
 	}
 }
 
-QString ToolManager::procName(QProcess *proccess) const
+QString ToolManager::generateTitle(QProcess *process, const QString &title)
 {
-	return this->findIter(proccess).key();
+	return tr("%1 %2 — %3")
+			.arg(this->isServer(process) ? tr("Server") : tr("Client"))
+			.arg(this->procName(process))
+			.arg(title);
 }
 
-bool ToolManager::isServer(QProcess *proccess) const
+QString ToolManager::procName(QProcess *process) const
 {
-	return this->findIter(proccess)->second;
+	return this->findIter(process).key();
 }
 
-bool ToolManager::isActive(QProcess *proccess) const
+bool ToolManager::isServer(QProcess *process) const
 {
-	return this->findIter(proccess) != this->processes.constEnd();
+	return this->findIter(process)->second;
 }
 
-void ToolManager::remove(QProcess *proccess)
+bool ToolManager::isActive(QProcess *process) const
 {
-	this->processes.erase(this->findIter(proccess));
-	this->outBuffer.remove(proccess);
-	this->portAwaiters.remove(proccess);
-	proccess->deleteLater();
+	return this->findIter(process) != this->processes.constEnd();
 }
 
-QHash<QString, ToolManager::ProcInfo>::ConstIterator ToolManager::findIter(QProcess *proccess) const
+void ToolManager::remove(QProcess *process)
+{
+	this->processes.erase(this->findIter(process));
+	this->outBuffer.remove(process);
+	this->portAwaiters.remove(process);
+	process->deleteLater();
+}
+
+QHash<QString, ToolManager::ProcInfo>::ConstIterator ToolManager::findIter(QProcess *process) const
 {
 	return std::find_if(this->processes.constBegin(), this->processes.constEnd(), [=](auto value){
-		return value.first == proccess;
+		return value.first == process;
 	});
 }

@@ -22,7 +22,7 @@ public slots:
 	void showCreate();
 
 private slots:
-	void errorOccured(bool isServer, const QString &name, const QString &error);
+	void showMessage(QtMsgType type, const QString &title, const QString &message);
 
 private:
 	QSystemTrayIcon *trayIco;

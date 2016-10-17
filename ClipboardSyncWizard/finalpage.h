@@ -28,7 +28,7 @@ private slots:
 	void reloadText(bool showPasswords);
 	void doCreate(int which);
 
-	void errorOccured(bool isServer, const QString &name, const QString &error);
+	void errorOccured(QtMsgType type);
 	void serverCreated(const QString &name, quint16 port, const QStringList &localAddresses, const QString &remoteAddress);
 
 private:

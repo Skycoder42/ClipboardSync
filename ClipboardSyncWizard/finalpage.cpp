@@ -17,7 +17,7 @@ FinalPage::FinalPage(ToolManager *manager, QWidget *parent) :
 
 	this->setButtonText(QWizard::CustomButton1, tr("Create Instances"));
 
-	connect(this->manager, &ToolManager::errorOccured,
+	connect(this->manager, &ToolManager::showMessage,
 			this, &FinalPage::errorOccured);
 	connect(this->manager, &ToolManager::serverCreated,
 			this, &FinalPage::serverCreated);
@@ -145,9 +145,10 @@ void FinalPage::doCreate(int which)
 	}
 }
 
-void FinalPage::errorOccured(bool isServer, const QString &name, const QString &error)
+void FinalPage::errorOccured(QtMsgType type)
 {
-	this->createIndicator->close();
+	if(type == QtMsgType::QtCriticalMsg)
+		this->createIndicator->close();
 }
 
 void FinalPage::serverCreated(const QString &name, quint16 port, const QStringList &localAddresses, const QString &remoteAddress)

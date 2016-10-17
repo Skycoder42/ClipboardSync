@@ -24,7 +24,7 @@ public slots:
 					  bool localOnly);
 
 signals:
-	void errorOccured(bool isServer, const QString &name, const QString &error);
+	void showMessage(QtMsgType type, const QString &title, const QString &message);
 	void serverCreated(const QString &name, quint16 port, const QStringList &localAddresses, const QString &remoteAddress);
 
 private slots:
@@ -47,12 +47,13 @@ private:
 	QHash<QProcess*, QByteArray> outBuffer;
 	QHash<QProcess*, ServerInfo> portAwaiters;
 
-	QString procName(QProcess *proccess) const;
-	bool isServer(QProcess *proccess) const;
-	bool isActive(QProcess *proccess) const;
-	void remove(QProcess *proccess);
+	QString generateTitle(QProcess *process, const QString &title);
+	QString procName(QProcess *process) const;
+	bool isServer(QProcess *process) const;
+	bool isActive(QProcess *process) const;
+	void remove(QProcess *process);
 
-	QHash<QString, ProcInfo>::ConstIterator findIter(QProcess *proccess) const;
+	QHash<QString, ProcInfo>::ConstIterator findIter(QProcess *process) const;
 };
 
 #endif // TOOLMANAGER_H
