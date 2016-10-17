@@ -140,13 +140,17 @@ void SyncServer::printPort() const
 
 void SyncServer::printNetInfo() const
 {
-	auto allAddresses = QNetworkInterface::allAddresses();
-	QByteArray resData;
-	foreach (QHostAddress address, allAddresses) {
-		if(address.protocol() == QAbstractSocket::IPv4Protocol)
-			resData.append(address.toString() + ";");
+	if(this->isLocal)
+		qInfo() << "netinfo:" << qPrintable(QHostAddress(QHostAddress::LocalHost).toString());
+	else {
+		auto allAddresses = QNetworkInterface::allAddresses();
+		QByteArray resData;
+		foreach (QHostAddress address, allAddresses) {
+			if(address.protocol() == QAbstractSocket::IPv4Protocol)
+				resData.append(address.toString() + QLatin1Char(';'));
+		}
+		qInfo() << "netinfo:" << resData.constData();
 	}
-	qInfo() << "netinfo:" << resData.constData();
 }
 
 void SyncServer::printRemoteInfo() const
