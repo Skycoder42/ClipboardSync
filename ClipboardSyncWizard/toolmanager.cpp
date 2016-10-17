@@ -13,25 +13,28 @@
 
 ToolManager::ToolManager(QObject *parent) :
 	QObject(parent),
-	servers(),
-	clients()
+	processes(),
+	outBuffer(),
+	portAwaiters()
 {}
 
 ToolManager::~ToolManager()
 {
-	auto endList = this->servers.values();
-	endList.append(this->clients.values());
-
-	foreach (auto proc, endList)
-		proc->write("exit\n");
+	foreach (auto proc, this->processes)
+		proc.first->write("exit\n");
 
 	auto allowWait = true;
-	foreach (auto proc, endList) {
-		if(!allowWait || !proc->waitForFinished(1000)) {
+	foreach (auto proc, this->processes) {
+		if(!allowWait || !proc.first->waitForFinished(1000)) {
 			allowWait = false;
-			proc->kill();
+			proc.first->kill();
 		}
 	}
+}
+
+bool ToolManager::hasName(const QString &name) const
+{
+	return this->processes.contains(name);
 }
 
 void ToolManager::createServer(const QString &name, const int port, const QString &authPass, const QString &certPath, const QString &cerPass, bool localOnly)
@@ -68,7 +71,7 @@ void ToolManager::createServer(const QString &name, const int port, const QStrin
 	proc->setEnvironment(env.toStringList());
 #endif
 
-	this->servers.insert(name, proc);
+	this->processes.insert(name, {proc, true});
 	this->portAwaiters.insert(proc, {0, {}});
 	proc->start(QIODevice::ReadWrite);
 }
@@ -142,28 +145,30 @@ void ToolManager::procOutReady()
 
 QString ToolManager::procName(QProcess *proccess) const
 {
-	auto name = this->servers.key(proccess);
-	if(name.isNull())
-		return this->clients.key(proccess);
-	else
-		return name;
+	return this->findIter(proccess).key();
 }
 
 bool ToolManager::isServer(QProcess *proccess) const
 {
-	return !this->servers.key(proccess).isNull();
+	return this->findIter(proccess)->second;
 }
 
 bool ToolManager::isActive(QProcess *proccess) const
 {
-	return !this->servers.key(proccess).isNull() ||
-			!this->clients.key(proccess).isNull();
+	return this->findIter(proccess) != this->processes.constEnd();
 }
 
 void ToolManager::remove(QProcess *proccess)
 {
-	this->servers.remove(this->servers.key(proccess));
-	this->clients.remove(this->servers.key(proccess));
+	this->processes.erase(this->findIter(proccess));
+	this->outBuffer.remove(proccess);
 	this->portAwaiters.remove(proccess);
 	proccess->deleteLater();
+}
+
+QHash<QString, ToolManager::ProcInfo>::ConstIterator ToolManager::findIter(QProcess *proccess) const
+{
+	return std::find_if(this->processes.constBegin(), this->processes.constEnd(), [=](auto value){
+		return value.first == proccess;
+	});
 }

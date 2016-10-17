@@ -9,8 +9,8 @@ Q_DECLARE_METATYPE(QSsl::EncodingFormat)
 App::App(int &argc, char **argv) :
 	QApplication(argc, argv),
 	trayIco(nullptr),
-	trayMenu(nullptr),
-	manager(nullptr)
+	toolManager(nullptr),
+	menuManager(nullptr)
 {
 	setApplicationName(TARGET);
 	setApplicationVersion(VERSION);
@@ -25,29 +25,29 @@ App::App(int &argc, char **argv) :
 	this->init();
 }
 
-App::~App()
-{
-	delete this->trayMenu;
-}
-
 int App::exec()
 {
 	this->trayIco->show();
 
 	//DEBUG --> dynamic only if no config!
-	this->trayMenu->actions().first()->setEnabled(false);
-	if(!MainWizard::createInstance(this->manager))
+	this->menuManager->setCreateEnabled(false);
+	if(!MainWizard::createInstance(this->toolManager))
 		return EXIT_FAILURE;
-	this->trayMenu->actions().first()->setEnabled(true);
+	this->menuManager->setCreateEnabled(true);
 
 	return QApplication::exec();
 }
 
+bool App::testNameUnique(const QString &name) const
+{
+	return !this->toolManager->hasName(name);
+}
+
 void App::showCreate()
 {
-	this->trayMenu->actions().first()->setEnabled(false);
-	MainWizard::createInstance(this->manager);
-	this->trayMenu->actions().first()->setEnabled(true);
+	this->menuManager->setCreateEnabled(false);
+	MainWizard::createInstance(this->toolManager);
+	this->menuManager->setCreateEnabled(true);
 }
 
 void App::errorOccured(bool isServer, const QString &name, const QString &error)
@@ -62,18 +62,15 @@ void App::errorOccured(bool isServer, const QString &name, const QString &error)
 
 void App::init()
 {
-	this->trayMenu = new QMenu();
-	this->trayMenu->addAction(tr("Add Instance"), this, &App::showCreate);
-	this->trayMenu->addSeparator();
-	this->trayMenu->addAction(tr("Quit"), this, &App::quit);
-
 	this->trayIco = new QSystemTrayIcon(windowIcon(), this);
-	this->trayIco->setToolTip(tr("%1 — Running").arg(this->applicationDisplayName()));
-	this->trayIco->setContextMenu(this->trayMenu);
 
-	this->manager = new ToolManager(this);
-	connect(this->manager, &ToolManager::errorOccured,
+	this->toolManager = new ToolManager(this);
+	connect(this->toolManager, &ToolManager::errorOccured,
 			this, &App::errorOccured);
+
+	this->menuManager = new MenuManager(this->trayIco, this);
+	connect(this->toolManager, &ToolManager::serverCreated,
+			this->menuManager, &MenuManager::addServer);
 }
 
 int main(int argc, char *argv[])

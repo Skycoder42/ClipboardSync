@@ -3,6 +3,7 @@
 #include <QSslCertificate>
 #include <QSslKey>
 #include <dialogmaster.h>
+#include "app.h"
 
 ServerSetupPage::ServerSetupPage(QWidget *parent) :
 	QWizardPage(parent),
@@ -38,6 +39,14 @@ ServerSetupPage::~ServerSetupPage()
 
 bool ServerSetupPage::validatePage()
 {
+	if(!qApp->testNameUnique(this->ui->serverNameLineEdit->text())) {
+		DialogMaster::warning(this,
+							  tr("The name \"%1\" is aleady in use! Please choose another one.")
+							  .arg(this->ui->serverNameLineEdit->text()),
+							  tr("Name already in use!"));
+		return false;
+	}
+
 	if(this->ui->secureConnectionCheckBox->isChecked()) {
 		QFile file(this->ui->secureConnectionPathEdit->path());
 		if(!file.open(QIODevice::ReadOnly)) {

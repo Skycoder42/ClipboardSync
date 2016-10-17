@@ -13,6 +13,8 @@ public:
 	explicit ToolManager(QObject *parent = nullptr);
 	~ToolManager();
 
+	bool hasName(const QString &name) const;
+
 public slots:
 	void createServer(const QString &name,
 					  const int port,
@@ -33,23 +35,24 @@ private slots:
 	void procOutReady();
 
 private:
+	typedef QPair<QProcess*, bool> ProcInfo;
 	struct ServerInfo {
 		int port;
 		QStringList localAddresses;
 		QString remoteAddress;
 	};
 
-	QHash<QString, QProcess*> servers;
-	QHash<QString, QProcess*> clients;
+	QHash<QString, ProcInfo> processes;
 
 	QHash<QProcess*, QByteArray> outBuffer;
-
 	QHash<QProcess*, ServerInfo> portAwaiters;
 
 	QString procName(QProcess *proccess) const;
 	bool isServer(QProcess *proccess) const;
 	bool isActive(QProcess *proccess) const;
 	void remove(QProcess *proccess);
+
+	QHash<QString, ProcInfo>::ConstIterator findIter(QProcess *proccess) const;
 };
 
 #endif // TOOLMANAGER_H

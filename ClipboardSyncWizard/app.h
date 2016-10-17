@@ -5,6 +5,7 @@
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include "toolmanager.h"
+#include "menumanager.h"
 
 class App : public QApplication
 {
@@ -12,21 +13,26 @@ class App : public QApplication
 
 public:
 	explicit App(int &argc, char **argv);
-	~App();
 
 	int exec();
 
-private slots:
+	bool testNameUnique(const QString &name) const;
+
+public slots:
 	void showCreate();
+
+private slots:
 	void errorOccured(bool isServer, const QString &name, const QString &error);
 
 private:
 	QSystemTrayIcon *trayIco;
-	QMenu *trayMenu;
-
-	ToolManager *manager;
+	ToolManager *toolManager;
+	MenuManager *menuManager;
 
 	void init();
 };
+
+#undef qApp
+#define qApp ((App*)QApplication::instance())
 
 #endif // APP_H

@@ -39,7 +39,8 @@ HEADERS  += \
 	clientsetuppage.h \
     finalpage.h \
     toolmanager.h \
-    app.h
+    app.h \
+    menumanager.h
 
 SOURCES += intropage.cpp \
     mainwizard.cpp \
@@ -47,7 +48,8 @@ SOURCES += intropage.cpp \
 	clientsetuppage.cpp \
     finalpage.cpp \
     toolmanager.cpp \
-    app.cpp
+    app.cpp \
+    menumanager.cpp
 
 FORMS    += \
     intropage.ui \

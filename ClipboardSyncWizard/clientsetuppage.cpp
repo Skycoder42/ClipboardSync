@@ -3,6 +3,7 @@
 #include <QRegularExpressionValidator>
 #include <QSslCertificate>
 #include <dialogmaster.h>
+#include "app.h"
 
 ClientSetupPage::ClientSetupPage(QWidget *parent) :
 	QWizardPage(parent),
@@ -43,9 +44,7 @@ ClientSetupPage::~ClientSetupPage()
 void ClientSetupPage::initializePage()
 {
 	if(this->field(MainWizard::ModeField) == MainWizard::ServerMode) {
-		this->ui->clientNameLineEdit->setText(this->field(MainWizard::ServerNameField).toString());
-		this->ui->clientNameLabel->setEnabled(false);
-		this->ui->clientNameLineEdit->setEnabled(false);
+		this->ui->clientNameLineEdit->setText(this->field(MainWizard::ServerNameField).toString() + QStringLiteral("_Client"));
 		this->ui->serverADdressLineEdit->setText(tr("Local Server"));
 		this->ui->serverADdressLabel->setEnabled(false);
 		this->ui->serverADdressLineEdit->setEnabled(false);
@@ -67,8 +66,6 @@ void ClientSetupPage::initializePage()
 void ClientSetupPage::cleanupPage()
 {
 	this->ui->clientNameLineEdit->clear();
-	this->ui->clientNameLabel->setEnabled(true);
-	this->ui->clientNameLineEdit->setEnabled(true);
 	this->ui->serverADdressLineEdit->clear();
 	this->ui->serverADdressLabel->setEnabled(true);
 	this->ui->serverADdressLineEdit->setEnabled(true);
@@ -86,6 +83,14 @@ void ClientSetupPage::cleanupPage()
 
 bool ClientSetupPage::validatePage()
 {
+	auto name = this->ui->clientNameLineEdit->text();
+	if(!qApp->testNameUnique(name) || this->field(MainWizard::ServerNameField) == name) {
+		DialogMaster::warning(this,
+							  tr("The name \"%1\" is aleady in use! Please choose another one.").arg(name),
+							  tr("Name already in use!"));
+		return false;
+	}
+
 	if(this->ui->sBoxCustom->isChecked()) {
 		do {//create "break" context
 			if(this->ui->customCertBox->currentIndex() != 2) {//Auto or PEM
