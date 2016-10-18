@@ -72,6 +72,30 @@ void App::showMessage(QtMsgType type, const QString &title, const QString &messa
 	this->trayIco->showMessage(title, message, icon);
 }
 
+void App::serverStatusLoaded(const QString &name, ToolManager::ServerInfo info)
+{
+	auto config = DialogMaster::createInformation();
+	config.windowTitle = tr("Server created");
+	config.title = tr("Server %1 — Running").arg(name);
+	config.text = tr("Server \"%1\" is running. It runs on port %2. "
+					 "Check the Details for a list of all IPs you can access it with.")
+				  .arg(name)
+				  .arg(info.port);
+	config.details = tr("Port: %1\n").arg(info.port);
+	if(info.remoteAddress != QStringLiteral("0.0.0.0"))
+		config.details += tr("Remote Address (Internet): %1\n").arg(info.remoteAddress);
+	config.details += tr("Known local IP-Addresses:");
+	foreach(auto info, info.localAddresses)
+		config.details.append(tr("\n - ") + info);
+
+	auto box = DialogMaster::createMessageBox(config);
+	box->setAttribute(Qt::WA_DeleteOnClose);
+	box->open();
+	box->raise();
+	box->activateWindow();
+	this->alert(box);
+}
+
 void App::init()
 {
 	this->trayIco = new QSystemTrayIcon(windowIcon(), this);
@@ -85,6 +109,8 @@ void App::init()
 			this->menuManager, &MenuManager::addServer);
 	connect(this->toolManager, &ToolManager::instanceClosed,
 			this->menuManager, &MenuManager::removeInstance);
+	connect(this->toolManager, &ToolManager::serverStatusLoaded,
+			this, &App::serverStatusLoaded);
 	connect(this->menuManager, &MenuManager::performAction,
 			this->toolManager, &ToolManager::performAction);
 }

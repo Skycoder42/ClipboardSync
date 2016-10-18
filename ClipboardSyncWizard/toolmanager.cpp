@@ -90,6 +90,7 @@ void ToolManager::performAction(const QString &name, ToolManager::Actions action
 			proc->write("clear\n");
 			break;
 		case Status:
+			this->procInfos[proc].serverAwaiter.doesAwait = true;
 			proc->write("port\nnetinfo\nremoteinfo\n");
 			break;
 		case Peers:
@@ -105,8 +106,10 @@ void ToolManager::procStarted()
 {
 	auto proc = qobject_cast<QProcess*>(QObject::sender());
 	if(proc) {//TODO
-		if(this->procInfos[proc].isServer)
+		if(this->procInfos[proc].isServer) {
 			proc->write("port\nnetinfo\nremoteinfo\n");
+			emit serverCreated(this->procName(proc));
+		}
 	}
 }
 
@@ -160,11 +163,7 @@ void ToolManager::procOutReady()
 						awaiter.remoteAddress = QString::fromUtf8(param);
 
 					if(awaiter.isComplete()) {
-						if(awaiter.initAwait) {
-							awaiter.initAwait = false;
-							emit serverCreated(this->procName(proc), awaiter.port, awaiter.localAddresses, awaiter.remoteAddress);
-						} else
-							;//TODO emit message
+						emit serverStatusLoaded(this->procName(proc), awaiter);
 						awaiter.doesAwait = false;
 					}
 				}
@@ -209,11 +208,17 @@ QHash<QString, QProcess*>::ConstIterator ToolManager::findIter(QProcess *process
 
 
 
+ToolManager::ServerInfo::ServerInfo() :
+	port(0),
+	localAddresses(),
+	remoteAddress()
+{}
+
 ToolManager::InstanceInfo::InstanceInfo(bool isServer) :
 	isServer(isServer),
 	outBuffer(),
 	errBuffer(),
-	serverAwaiter({true, true, 0, {}, QString()})
+	serverAwaiter()
 {}
 
 bool ToolManager::InstanceInfo::ServerAwaiter::isComplete() const
@@ -222,3 +227,8 @@ bool ToolManager::InstanceInfo::ServerAwaiter::isComplete() const
 			!this->localAddresses.isEmpty() &&
 			!this->remoteAddress.isNull();
 }
+
+ToolManager::InstanceInfo::ServerAwaiter::ServerAwaiter() :
+	ServerInfo(),
+	doesAwait(true)
+{}

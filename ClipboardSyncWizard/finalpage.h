@@ -29,7 +29,7 @@ private slots:
 	void doCreate(int which);
 
 	void errorOccured(QtMsgType type);
-	void serverCreated(const QString &name, quint16 port, const QStringList &localAddresses, const QString &remoteAddress);
+	void serverCreated();
 
 private:
 	Ui::FinalPage *ui;

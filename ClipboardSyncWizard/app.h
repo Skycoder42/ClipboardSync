@@ -23,6 +23,7 @@ public slots:
 
 private slots:
 	void showMessage(QtMsgType type, const QString &title, const QString &message);
+	void serverStatusLoaded(const QString &name, ToolManager::ServerInfo info);
 
 private:
 	QSystemTrayIcon *trayIco;

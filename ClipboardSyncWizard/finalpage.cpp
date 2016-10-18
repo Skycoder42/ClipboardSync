@@ -19,7 +19,7 @@ FinalPage::FinalPage(ToolManager *manager, QWidget *parent) :
 
 	connect(this->manager, &ToolManager::showMessage,
 			this, &FinalPage::errorOccured);
-	connect(this->manager, &ToolManager::serverCreated,
+	connect(this->manager, &ToolManager::serverStatusLoaded,
 			this, &FinalPage::serverCreated);
 }
 
@@ -151,27 +151,11 @@ void FinalPage::errorOccured(QtMsgType type)
 		this->createIndicator->close();
 }
 
-void FinalPage::serverCreated(const QString &name, quint16 port, const QStringList &localAddresses, const QString &remoteAddress)
+void FinalPage::serverCreated()
 {
 	this->createIndicator->close();
 	this->complete = true;
 	emit completeChanged();
-
-	auto config = DialogMaster::createInformation(tr("Server \"%1\" successfully created. It runs on port %2. "
-													 "Check the Details for a list of all IPs")
-												  .arg(name)
-												  .arg(port),
-												  this);
-	config.title = tr("Successfully created %1 Server").arg(name);
-	config.windowTitle = tr("Server created");
-	config.details = tr("Port: %1\n").arg(port);
-	if(remoteAddress != QStringLiteral("0.0.0.0"))
-		config.details += tr("Remote Address (Internet): %1\n").arg(remoteAddress);
-	config.details += tr("Known local IP-Addresses:");
-	foreach(auto info, localAddresses)
-		config.details.append(tr("\n - ") + info);
-
-	DialogMaster::messageBox(config);
 }
 
 void FinalPage::createServer()

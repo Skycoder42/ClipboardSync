@@ -23,6 +23,14 @@ public:
 	};
 	Q_ENUM(Actions)
 
+	struct ServerInfo {
+		quint16 port;
+		QStringList localAddresses;
+		QString remoteAddress;
+
+		ServerInfo();
+	};
+
 	explicit ToolManager(QObject *parent = nullptr);
 	~ToolManager();
 
@@ -39,10 +47,11 @@ public slots:
 	void performAction(const QString &name, Actions action);
 
 signals:
-	void showMessage(QtMsgType type, const QString &title, const QString &message);
-	void serverCreated(const QString &name, quint16 port, const QStringList &localAddresses, const QString &remoteAddress);
-
+	void serverCreated(const QString &name);
 	void instanceClosed(const QString &name);
+	void serverStatusLoaded(const QString &name, ServerInfo serverInfo);
+
+	void showMessage(QtMsgType type, const QString &title, const QString &message);
 
 private slots:
 	void procStarted();
@@ -57,15 +66,12 @@ private:
 		QByteArray outBuffer;
 		QByteArray errBuffer;
 
-		struct ServerAwaiter {
+		struct ServerAwaiter : public ServerInfo {
 			bool doesAwait;
-			bool initAwait;
-
-			int port;
-			QStringList localAddresses;
-			QString remoteAddress;
 
 			bool isComplete() const;
+
+			ServerAwaiter();
 		} serverAwaiter;
 
 		InstanceInfo(bool isServer = false);
