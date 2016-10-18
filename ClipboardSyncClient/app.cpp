@@ -47,7 +47,7 @@ int App::exec()
 					 });
 	parser.process(*this);
 	if (parser.positionalArguments().size() != 2) {
-		qInfo(qPrintable(parser.helpText()));
+		qInfo(qUtf8Printable(parser.helpText()));
 		return EXIT_FAILURE;
 	}
 

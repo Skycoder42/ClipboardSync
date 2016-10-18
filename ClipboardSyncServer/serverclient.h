@@ -22,7 +22,7 @@ public:
 	bool isInfoShown() const;
 
 public slots:
-	void closeConnection(bool hideMessage = false);
+	void closeConnection();
 	void sendData(const QByteArray &data);
 
 	void setShowInfo(bool showInfo);

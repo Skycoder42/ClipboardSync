@@ -101,7 +101,7 @@ void Console::consoleMessage(QtMsgType type, const QMessageLogContext &context, 
 		break;
 	case QtMsgType::QtFatalMsg:
 		resStr = QStringLiteral("[Fatal]    ") + msg;
-		qt_assert_x(context.function, qPrintable(resStr), context.file, context.line);
+		qt_assert_x(context.function, qUtf8Printable(resStr), context.file, context.line);
 		break;
 	default:
 		resStr = msg;
@@ -111,5 +111,5 @@ void Console::consoleMessage(QtMsgType type, const QMessageLogContext &context, 
 	if(consoleInstance)
 		consoleInstance->writeMessage(type != QtMsgType::QtInfoMsg, resStr.toUtf8());
 	else
-		std::cerr << "CONSOLE DESTROYED! ORIGINAL MESSAGE:" << qPrintable(resStr);
+		std::cerr << "CONSOLE DESTROYED! ORIGINAL MESSAGE:" << qUtf8Printable(resStr);
 }

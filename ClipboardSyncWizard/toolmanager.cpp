@@ -107,7 +107,7 @@ void ToolManager::procStarted()
 	auto proc = qobject_cast<QProcess*>(QObject::sender());
 	if(proc) {//TODO
 		if(this->procInfos[proc].isServer) {
-			proc->write("port\nnetinfo\nremoteinfo\n");
+			proc->write("showconnectinfo\nport\nnetinfo\nremoteinfo\n");
 			emit serverCreated(this->procName(proc));
 		}
 	}
@@ -151,6 +151,15 @@ void ToolManager::procOutReady()
 			auto param = info.mid(sIndex + 1).simplified();
 
 			if(this->procInfos[proc].isServer) {
+				//check "info"
+				if(command == "info") {
+					auto str = QString::fromUtf8(param);
+					auto bIndex = str.indexOf(QLatin1Char(';'));
+					auto title = str.mid(0, bIndex);
+					auto text = str.mid(bIndex + 1);
+					emit showMessage(QtMsgType::QtInfoMsg, title, text);
+				}
+
 				//init data
 				if(this->procInfos[proc].serverAwaiter.doesAwait) {
 					auto &awaiter = this->procInfos[proc].serverAwaiter;

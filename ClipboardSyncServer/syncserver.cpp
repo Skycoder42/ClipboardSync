@@ -137,7 +137,7 @@ void SyncServer::printPort() const
 void SyncServer::printNetInfo() const
 {
 	if(this->isLocal)
-		qInfo() << "netinfo:" << qPrintable(QHostAddress(QHostAddress::LocalHost).toString());
+		qInfo() << "netinfo:" << qUtf8Printable(QHostAddress(QHostAddress::LocalHost).toString());
 	else {
 		auto allAddresses = QNetworkInterface::allAddresses();
 		QByteArray resData;

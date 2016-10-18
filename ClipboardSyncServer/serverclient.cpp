@@ -29,7 +29,7 @@ bool ServerClient::validate(const QString &password)
 	if(password == remotePw)
 		return true;
 	else {
-		qWarning() << qPrintable(this->socket->origin()) << "-->"
+		qWarning() << qUtf8Printable(this->socket->origin()) << "-->"
 				   << "Client authentification failed! Invalid Password.";
 		disconnect(this->socket, &QWebSocket::disconnected,
 				   this, &ServerClient::disconnected);
@@ -48,7 +48,7 @@ void ServerClient::printConnected() const
 {
 	if(this->showInfo) {
 		qInfo() << "info:"
-				<< qPrintable(tr("New Client connected!;A new client with the name \"%1\"has connected to the server.")
+				<< qUtf8Printable(tr("New Client connected!;A new client with the name \"%1\"has connected to the server.")
 							  .arg(socket->origin()));
 	}
 	qDebug() << "New client connected:" << socket->origin();
@@ -59,15 +59,13 @@ bool ServerClient::isInfoShown() const
 	return this->showInfo;
 }
 
-void ServerClient::closeConnection(bool hideMessage)
+void ServerClient::closeConnection()
 {
-	qDebug() << qPrintable(this->socket->origin()) << "-->"
+	qDebug() << qUtf8Printable(this->socket->origin()) << "-->"
 			 << "Client was closed by the server";
 	if(this->socket->state() == QAbstractSocket::ConnectedState) {
-		if(hideMessage) {
-			disconnect(this->socket, &QWebSocket::disconnected,
-					   this, &ServerClient::disconnected);
-		}
+		disconnect(this->socket, &QWebSocket::disconnected,
+				   this, &ServerClient::disconnected);
 		this->socket->close();
 		this->deleteLater();
 	}
@@ -87,7 +85,7 @@ void ServerClient::setShowInfo(bool showInfo)
 void ServerClient::error(QAbstractSocket::SocketError error)
 {
 	if(error != QAbstractSocket::RemoteHostClosedError) {
-		qWarning() << qPrintable(this->socket->origin()) << "-->"
+		qWarning() << qUtf8Printable(this->socket->origin()) << "-->"
 				   << "Socket error occured ("
 				   << (int)error
 				   << "):"
@@ -102,23 +100,18 @@ void ServerClient::error(QAbstractSocket::SocketError error)
 
 void ServerClient::disconnected()
 {
-	qWarning() << qPrintable(this->socket->origin()) << "-->"
+	qWarning() << qUtf8Printable(this->socket->origin()) << "-->"
 			   << "Client closed the connection ("
 			   << (int)this->socket->closeCode()
 			   << "):"
 			   << this->socket->closeReason();
-	if(this->showInfo) {
-		qInfo() << "info:"
-				<< qPrintable(tr("Client disconnected!;The connection with the client \"%1\" was closed.")
-							  .arg(socket->origin()));
-	}
 	this->deleteLater();
 }
 
 void ServerClient::sslErrors(const QList<QSslError> &errors)
 {
 	foreach(auto error, errors) {
-		qWarning() << qPrintable(this->socket->origin()) << "-->"
+		qWarning() << qUtf8Printable(this->socket->origin()) << "-->"
 				   << "SSL-Error occured ("
 				   << (int)error.error()
 				   << "):"
@@ -128,7 +121,7 @@ void ServerClient::sslErrors(const QList<QSslError> &errors)
 
 void ServerClient::clientMessage(const QByteArray &message)
 {
-	qDebug() << qPrintable(this->socket->origin()) << "-->"
+	qDebug() << qUtf8Printable(this->socket->origin()) << "-->"
 			 << "Sent new clipboard state";
 	this->server->performSync(this, message);
 }
