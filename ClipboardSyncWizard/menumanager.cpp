@@ -43,6 +43,9 @@ void MenuManager::addServer(const QString &name)
 		emit performAction(name, ToolManager::Peers);
 	});
 	menu->addSeparator();
+	menu->addAction(tr("Show Server &Log"), this, [=](){
+		emit performAction(name, ToolManager::Log);
+	});
 	menu->addAction(tr("&Quit Server"), this, [=](){
 		emit performAction(name, ToolManager::Close);
 	});

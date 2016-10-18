@@ -1,4 +1,5 @@
 #include "toolmanager.h"
+#include <dialogmaster.h>
 
 #ifdef QT_NO_DEBUG
 # define SERVER_TOOL QStringLiteral("./ClipboardSyncServer")
@@ -91,6 +92,9 @@ void ToolManager::performAction(const QString &name, ToolManager::Actions action
 			break;
 		case Clear:
 			proc->write("clear\n");
+			break;
+		case Log:
+			DialogMaster::information(nullptr, QString::fromUtf8(this->procInfos[proc].errorLog));//TODO log box
 			break;
 		case Status:
 			this->procInfos[proc].serverAwaiter.doesAwait = true;

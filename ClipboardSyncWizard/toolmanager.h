@@ -16,6 +16,7 @@ public:
 		Close = 0x01,
 		Sync = 0x02,
 		Clear = 0x03,
+		Log = 0x04,
 
 		//Server only
 		Status = 0x11,
