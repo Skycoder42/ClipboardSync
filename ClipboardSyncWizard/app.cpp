@@ -83,6 +83,10 @@ void App::init()
 	this->menuManager = new MenuManager(this->trayIco, this);
 	connect(this->toolManager, &ToolManager::serverCreated,
 			this->menuManager, &MenuManager::addServer);
+	connect(this->toolManager, &ToolManager::instanceClosed,
+			this->menuManager, &MenuManager::removeInstance);
+	connect(this->menuManager, &MenuManager::performAction,
+			this->toolManager, &ToolManager::performAction);
 }
 
 int main(int argc, char *argv[])

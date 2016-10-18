@@ -5,6 +5,7 @@
 #include <QSystemTrayIcon>
 #include <QScopedPointer>
 #include <QAction>
+#include "toolmanager.h"
 
 class MenuManager : public QObject
 {
@@ -19,10 +20,14 @@ public:
 
 public slots:
 	void addServer(const QString &name);
+	void removeInstance(const QString &name);
 
 	void setCreateEnabled(bool createEnabled);
 
 signals:
+	void closeInstance(const QString &name);
+	void performAction(const QString &name, ToolManager::Actions action);
+
 	void createEnabledChanged(bool createEnabled);
 
 private:

@@ -70,7 +70,9 @@ void Console::run()
 
 	forever {
 		auto command = inFile.readLine().trimmed();
-		if(this->autoQuit && command == QStringLiteral("exit"))
+		if(command.isEmpty())
+			QThread::msleep(100);
+		else if(this->autoQuit && command == QStringLiteral("exit"))
 			break;
 		else {
 			QMetaObject::invokeMethod(this, "commandReceived", Qt::QueuedConnection,

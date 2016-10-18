@@ -14,20 +14,19 @@
 ToolManager::ToolManager(QObject *parent) :
 	QObject(parent),
 	processes(),
-	outBuffer(),
-	portAwaiters()
+	procInfos()
 {}
 
 ToolManager::~ToolManager()
 {
 	foreach (auto proc, this->processes)
-		proc.first->write("exit\n");
+		proc->write("exit\n");
 
 	auto allowWait = true;
 	foreach (auto proc, this->processes) {
-		if(!allowWait || !proc.first->waitForFinished(1000)) {
+		if(!allowWait || !proc->waitForFinished(1000)) {
 			allowWait = false;
-			proc.first->kill();
+			proc->kill();
 		}
 	}
 }
@@ -71,22 +70,49 @@ void ToolManager::createServer(const QString &name, const int port, const QStrin
 	proc->setEnvironment(env.toStringList());
 #endif
 
-	this->processes.insert(name, {proc, true});
-	this->portAwaiters.insert(proc, {0, {}});
+	this->processes.insert(name, proc);
+	this->procInfos.insert(proc, true);
 	proc->start(QIODevice::ReadWrite);
+}
+
+void ToolManager::performAction(const QString &name, ToolManager::Actions action)
+{
+	auto proc = this->processes.value(name, nullptr);
+	if(proc) {
+		switch(action) {
+		case Close:
+			proc->write("exit\n");
+			break;
+		case Sync:
+			proc->write("sync\n");
+			break;
+		case Clear:
+			proc->write("clear\n");
+			break;
+		case Status:
+			proc->write("port\nnetinfo\nremoteinfo\n");
+			break;
+		case Peers:
+			proc->write("peers\n");
+			break;
+		default:
+			Q_UNREACHABLE();
+		}
+	}
 }
 
 void ToolManager::procStarted()
 {
 	auto proc = qobject_cast<QProcess*>(QObject::sender());
 	if(proc) {//TODO
-		if(this->isServer(proc))
+		if(this->procInfos[proc].isServer)
 			proc->write("port\nnetinfo\nremoteinfo\n");
 	}
 }
 
 void ToolManager::procErrorOccurred(QProcess::ProcessError error)
 {
+	Q_UNUSED(error);
 	auto proc = qobject_cast<QProcess*>(QObject::sender());
 	if(proc && this->isActive(proc)) {
 		emit showMessage(QtMsgType::QtCriticalMsg, this->generateTitle(proc, tr("Error occured!")), proc->errorString());
@@ -96,12 +122,14 @@ void ToolManager::procErrorOccurred(QProcess::ProcessError error)
 
 void ToolManager::procFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
+	Q_UNUSED(exitCode);
 	auto proc = qobject_cast<QProcess*>(QObject::sender());
 	if(proc && this->isActive(proc)) {
 		if(exitStatus != QProcess::NormalExit)
-			this->procErrorOccurred(QProcess::Crashed);
+			emit showMessage(QtMsgType::QtCriticalMsg, this->generateTitle(proc, tr("Process Crashed!")), proc->errorString());
 		else
 			emit showMessage(QtMsgType::QtInfoMsg, this->generateTitle(proc, tr("Finished!")), tr("The Process was closed!"));
+		emit instanceClosed(this->procName(proc));
 		this->remove(proc);
 	}
 }
@@ -110,30 +138,34 @@ void ToolManager::procOutReady()
 {
 	auto proc = qobject_cast<QProcess*>(QObject::sender());
 	if(proc) {
-		auto out = this->outBuffer.value(proc) + proc->readAllStandardOutput();
+		auto out = this->procInfos[proc].outBuffer + proc->readAllStandardOutput();
 		auto args = out.split('\n');
-		this->outBuffer.insert(proc, args.takeLast());
+		this->procInfos[proc].outBuffer = args.takeLast();
 
 		foreach(auto info, args) {
 			auto sIndex = info.indexOf(':');
 			auto command = info.mid(0, sIndex).toLower();
 			auto param = info.mid(sIndex + 1).simplified();
 
-			if(this->isServer(proc)) {
+			if(this->procInfos[proc].isServer) {
 				//init data
-				if(this->portAwaiters.contains(proc)) {
-					auto &status = this->portAwaiters[proc];
+				if(this->procInfos[proc].serverAwaiter.doesAwait) {
+					auto &awaiter = this->procInfos[proc].serverAwaiter;
 
 					if(command == "port")
-						status.port = param.toUShort();
+						awaiter.port = param.toUShort();
 					else if(command == "netinfo")
-						status.localAddresses = QString::fromUtf8(param).split(QLatin1Char(';'), QString::SkipEmptyParts);
+						awaiter.localAddresses = QString::fromUtf8(param).split(QLatin1Char(';'), QString::SkipEmptyParts);
 					else if(command == "remoteinfo")
-						status.remoteAddress = QString::fromUtf8(param);
+						awaiter.remoteAddress = QString::fromUtf8(param);
 
-					if(status.port != 0 && !status.localAddresses.isEmpty() && !status.remoteAddress.isNull()) {
-						emit serverCreated(this->procName(proc), status.port, status.localAddresses, status.remoteAddress);
-						this->portAwaiters.remove(proc);
+					if(awaiter.isComplete()) {
+						if(awaiter.initAwait) {
+							awaiter.initAwait = false;
+							emit serverCreated(this->procName(proc), awaiter.port, awaiter.localAddresses, awaiter.remoteAddress);
+						} else
+							;//TODO emit message
+						awaiter.doesAwait = false;
 					}
 				}
 			} else {
@@ -146,7 +178,7 @@ void ToolManager::procOutReady()
 QString ToolManager::generateTitle(QProcess *process, const QString &title)
 {
 	return tr("%1 %2 — %3")
-			.arg(this->isServer(process) ? tr("Server") : tr("Client"))
+			.arg(this->procInfos[process].isServer ? tr("Server") : tr("Client"))
 			.arg(this->procName(process))
 			.arg(title);
 }
@@ -154,11 +186,6 @@ QString ToolManager::generateTitle(QProcess *process, const QString &title)
 QString ToolManager::procName(QProcess *process) const
 {
 	return this->findIter(process).key();
-}
-
-bool ToolManager::isServer(QProcess *process) const
-{
-	return this->findIter(process)->second;
 }
 
 bool ToolManager::isActive(QProcess *process) const
@@ -169,14 +196,29 @@ bool ToolManager::isActive(QProcess *process) const
 void ToolManager::remove(QProcess *process)
 {
 	this->processes.erase(this->findIter(process));
-	this->outBuffer.remove(process);
-	this->portAwaiters.remove(process);
+	this->procInfos.remove(process);
 	process->deleteLater();
 }
 
-QHash<QString, ToolManager::ProcInfo>::ConstIterator ToolManager::findIter(QProcess *process) const
+QHash<QString, QProcess*>::ConstIterator ToolManager::findIter(QProcess *process) const
 {
 	return std::find_if(this->processes.constBegin(), this->processes.constEnd(), [=](auto value){
-		return value.first == process;
+		return value == process;
 	});
+}
+
+
+
+ToolManager::InstanceInfo::InstanceInfo(bool isServer) :
+	isServer(isServer),
+	outBuffer(),
+	errBuffer(),
+	serverAwaiter({true, true, 0, {}, QString()})
+{}
+
+bool ToolManager::InstanceInfo::ServerAwaiter::isComplete() const
+{
+	return this->port != 0 &&
+			!this->localAddresses.isEmpty() &&
+			!this->remoteAddress.isNull();
 }

@@ -86,6 +86,8 @@ void App::commandReceived(const QByteArray &command)
 		this->clipController->syncNow();
 	else if(command == "clear")
 		this->clipController->clear();
+	else
+		qWarning() << "Unknown command received:" << command;
 }
 
 int main(int argc, char *argv[])

@@ -96,7 +96,8 @@ void App::commandReceived(const QByteArray &command)
 		auto match = regex.match(command);
 		if(match.hasMatch())
 			this->syncServer->closeNamedClient(match.captured(1));
-	}
+	} else
+		qWarning() << "Unknown command received:" << command;
 }
 
 int main(int argc, char *argv[])

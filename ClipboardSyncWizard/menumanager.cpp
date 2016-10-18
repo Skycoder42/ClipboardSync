@@ -29,18 +29,35 @@ void MenuManager::addServer(const QString &name)
 {
 	auto menu = new QMenu(name, this->menu.data());
 
-	menu->addAction(tr("&Synchronize"));
-	menu->addAction(tr("&Clear Clipboard Data"));
+	menu->addAction(tr("&Synchronize"), this, [=](){
+		emit performAction(name, ToolManager::Sync);
+	});
+	menu->addAction(tr("&Clear Clipboard Data"), this, [=](){
+		emit performAction(name, ToolManager::Clear);
+	});
 	menu->addSeparator();
-	menu->addAction(tr("Show S&tatus"));
-	menu->addAction(tr("Show Connected Cl&ients"));
+	menu->addAction(tr("Show S&tatus"), this, [=](){
+		emit performAction(name, ToolManager::Status);
+	});
+	menu->addAction(tr("Show Connected Cl&ients"), this, [=](){
+		emit performAction(name, ToolManager::Peers);
+	});
 	menu->addSeparator();
-	menu->addAction(tr("&Quit Server"));
+	menu->addAction(tr("&Quit Server"), this, [=](){
+		emit performAction(name, ToolManager::Close);
+	});
 
 	this->menu->insertMenu(this->postServers, menu);
 	this->elements.insert(name, menu);
 
 	this->reloadTooltip();
+}
+
+void MenuManager::removeInstance(const QString &name)
+{
+	auto elem = this->elements.take(name);
+	if(elem)
+		elem->deleteLater();
 }
 
 void MenuManager::setCreateEnabled(bool createEnabled)
