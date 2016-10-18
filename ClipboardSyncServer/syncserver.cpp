@@ -12,7 +12,6 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QUrl>
-
 #include <QDebug>
 
 SyncServer::SyncServer(const QString &serverName, QObject *parent) :
@@ -23,6 +22,7 @@ SyncServer::SyncServer(const QString &serverName, QObject *parent) :
 	isLocal(false),
 	clients(),
 	currentState(),
+	showInfo(false),
 	ipNam(new QNetworkAccessManager(this))
 {
 	connect(this->ipNam, &QNetworkAccessManager::finished,
@@ -56,7 +56,7 @@ bool SyncServer::setupSecurity(const QString &p12_file, const QString &passphras
 		return false;
 	} else {
 		file.close();
-		qDebug() << "Successfully PKCS#12 certificate and key!";
+		qDebug() << "Successfully loaded PKCS#12 certificate and key!";
 		config.setLocalCertificate(cert);
 		config.setPrivateKey(key);
 		auto caCerts = config.caCertificates();
@@ -89,10 +89,6 @@ bool SyncServer::createServer(int port, const QString &password, bool local)
 			this, &SyncServer::acceptError);
 	connect(this->server, &QWebSocketServer::serverError,
 			this, &SyncServer::serverError);
-//	connect(this->server, &QWebSocketServer::originAuthenticationRequired,
-//			this, &SyncServer::originAuthenticationRequired);
-//	connect(this->server, &QWebSocketServer::peerVerifyError,
-//			this, &SyncServer::peerVerifyError);
 	connect(this->server, &QWebSocketServer::sslErrors,
 			this, &SyncServer::sslErrors);
 
@@ -118,7 +114,7 @@ void SyncServer::quitServer()
 {
 	this->server->close();
 	foreach(auto client, this->clients)
-		client->closeConnection();
+		client->closeConnection(true);
 }
 
 void SyncServer::syncAll()
@@ -173,6 +169,13 @@ void SyncServer::performSync(ServerClient *origin, const QByteArray &data)
 	}
 }
 
+void SyncServer::setShowInfo(bool show)
+{
+	this->showInfo = show;
+	foreach(auto client, this->clients)
+		client->setShowInfo(show);
+}
+
 void SyncServer::closeNamedClient(const QString &name)
 {
 	foreach(auto client, this->clients) {
@@ -184,10 +187,10 @@ void SyncServer::closeNamedClient(const QString &name)
 void SyncServer::newConnection()
 {
 	auto socket = this->server->nextPendingConnection();
-	qDebug() << "New client connecting:" << socket->origin();
-	auto client = new ServerClient(socket, this);
+	auto client = new ServerClient(socket, this->showInfo, this);
 	if(this->password.isNull() || client->validate(this->password)) {
 		this->clients.append(client);
+		client->printConnected();
 		connect(client, &ServerClient::destroyed, this, [=](){
 			this->clients.removeOne(client);
 		});

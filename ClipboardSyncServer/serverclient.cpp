@@ -2,10 +2,11 @@
 #include "synccore.h"
 #include "syncserver.h"
 
-ServerClient::ServerClient(QWebSocket *socket, SyncServer *parent) :
+ServerClient::ServerClient(QWebSocket *socket, bool showInfo, SyncServer *parent) :
 	QObject(parent),
 	server(parent),
-	socket(socket)
+	socket(socket),
+	showInfo(showInfo)
 {
 	this->socket->setParent(this);
 
@@ -43,13 +44,30 @@ QString ServerClient::name() const
 	return this->socket->origin();
 }
 
-void ServerClient::closeConnection()
+void ServerClient::printConnected() const
+{
+	if(this->showInfo) {
+		qInfo() << "info:"
+				<< qPrintable(tr("New Client connected!;A new client with the name \"%1\"has connected to the server.")
+							  .arg(socket->origin()));
+	}
+	qDebug() << "New client connected:" << socket->origin();
+}
+
+bool ServerClient::isInfoShown() const
+{
+	return this->showInfo;
+}
+
+void ServerClient::closeConnection(bool hideMessage)
 {
 	qDebug() << qPrintable(this->socket->origin()) << "-->"
 			 << "Client was closed by the server";
 	if(this->socket->state() == QAbstractSocket::ConnectedState) {
-		disconnect(this->socket, &QWebSocket::disconnected,
-				   this, &ServerClient::disconnected);
+		if(hideMessage) {
+			disconnect(this->socket, &QWebSocket::disconnected,
+					   this, &ServerClient::disconnected);
+		}
 		this->socket->close();
 		this->deleteLater();
 	}
@@ -59,6 +77,11 @@ void ServerClient::sendData(const QByteArray &data)
 {
 	if(!data.isEmpty())
 		this->socket->sendBinaryMessage(data);
+}
+
+void ServerClient::setShowInfo(bool showInfo)
+{
+	this->showInfo = showInfo;
 }
 
 void ServerClient::error(QAbstractSocket::SocketError error)
@@ -84,6 +107,12 @@ void ServerClient::disconnected()
 			   << (int)this->socket->closeCode()
 			   << "):"
 			   << this->socket->closeReason();
+	if(this->showInfo) {
+		qInfo() << "info:"
+				<< qPrintable(tr("Client disconnected!;The connection with the client \"%1\" was closed.")
+							  .arg(socket->origin()));
+	}
+	this->deleteLater();
 }
 
 void ServerClient::sslErrors(const QList<QSslError> &errors)

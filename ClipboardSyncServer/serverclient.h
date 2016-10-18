@@ -9,16 +9,23 @@ class ServerClient : public QObject
 {
 	Q_OBJECT
 
+	Q_PROPERTY(bool showInfo READ isInfoShown WRITE setShowInfo)
+
 public:
-	explicit ServerClient(QWebSocket *socket, SyncServer *parent = nullptr);
+	explicit ServerClient(QWebSocket *socket, bool showInfo, SyncServer *parent = nullptr);
 
 	bool validate(const QString &password);
 
 	QString name() const;
+	void printConnected() const;
+
+	bool isInfoShown() const;
 
 public slots:
-	void closeConnection();
+	void closeConnection(bool hideMessage = false);
 	void sendData(const QByteArray &data);
+
+	void setShowInfo(bool showInfo);
 
 private slots:
 	void error(QAbstractSocket::SocketError error);
@@ -30,6 +37,7 @@ private slots:
 private:
 	SyncServer *server;
 	QWebSocket *socket;
+	bool showInfo;
 };
 
 #endif // SERVERCLIENT_H

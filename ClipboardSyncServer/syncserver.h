@@ -26,6 +26,7 @@ public slots:
 	void printNetInfo() const;
 	void printRemoteInfo() const;
 	void performSync(ServerClient *origin, const QByteArray &data);
+	void setShowInfo(bool show);
 
 	void closeNamedClient(const QString &name);
 
@@ -46,6 +47,7 @@ private:
 
 	QList<ServerClient*> clients;
 	QByteArray currentState;
+	bool showInfo;
 
 	QNetworkAccessManager *ipNam;
 };
