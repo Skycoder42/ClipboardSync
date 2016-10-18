@@ -103,9 +103,11 @@ void Console::consoleMessage(QtMsgType type, const QMessageLogContext &context, 
 		resStr = QStringLiteral("[Fatal]    ") + msg;
 		qt_assert_x(context.function, qUtf8Printable(resStr), context.file, context.line);
 		break;
-	default:
+	case QtMsgType::QtInfoMsg:
 		resStr = msg;
 		break;
+	default:
+		Q_UNREACHABLE();
 	}
 
 	if(consoleInstance)

@@ -36,7 +36,7 @@ bool ToolManager::hasName(const QString &name) const
 	return this->processes.contains(name);
 }
 
-void ToolManager::createServer(const QString &name, const int port, const QString &authPass, const QString &certPath, const QString &cerPass, bool localOnly)
+void ToolManager::createServer(const QString &name, const int port, const QString &authPass, const QString &certPath, const QString &certPass, bool localOnly)
 {
 	auto proc = new QProcess(this);
 	proc->setProgram(SERVER_TOOL);
@@ -47,7 +47,7 @@ void ToolManager::createServer(const QString &name, const int port, const QStrin
 	if(!authPass.isEmpty())
 		args.append({QStringLiteral("--authentication"), authPass});
 	if(!certPath.isEmpty())
-		args.append({QStringLiteral("--secure"), certPath, QStringLiteral("--keypassphrase"), cerPass});
+		args.append({QStringLiteral("--secure"), certPath, QStringLiteral("--keypassphrase"), certPass});
 	if(localOnly)
 		args.append(QStringLiteral("--localonly"));
 	args.append(name);
@@ -61,6 +61,8 @@ void ToolManager::createServer(const QString &name, const int port, const QStrin
 			this, &ToolManager::procFinished);
 	connect(proc, &QProcess::readyReadStandardOutput,
 			this, &ToolManager::procOutReady);
+	connect(proc, &QProcess::readyReadStandardError,
+			this, &ToolManager::procErrReady);
 
 #if !defined(QT_NO_DEBUG) && defined(Q_OS_WIN)
 	QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
@@ -72,6 +74,7 @@ void ToolManager::createServer(const QString &name, const int port, const QStrin
 
 	this->processes.insert(name, proc);
 	this->procInfos.insert(proc, true);
+	qDebug() << args;
 	proc->start(QIODevice::ReadWrite);
 }
 
@@ -183,6 +186,40 @@ void ToolManager::procOutReady()
 	}
 }
 
+void ToolManager::procErrReady()
+{
+	auto proc = qobject_cast<QProcess*>(QObject::sender());
+	if(proc) {
+		auto allErr = proc->readAllStandardError();
+		this->procInfos[proc].errorLog.append(allErr);
+
+		auto err = this->procInfos[proc].errBuffer + allErr;
+		auto args = err.split('\n');
+		this->procInfos[proc].errBuffer = args.takeLast();
+
+		foreach(auto info, args) {
+			auto type = info.mid(0, 11).simplified();
+			auto message = info.mid(11);
+
+			QtMsgType mType;
+			QString title;
+			if(type == "[Warning]") {
+				mType = QtMsgType::QtWarningMsg;
+				title = this->generateTitle(proc, tr("Warning!"));
+			} else if(type == "[Critical]") {
+				mType = QtMsgType::QtCriticalMsg;
+				title = this->generateTitle(proc, tr("Critical Error!!!"));
+			} else if(type == "[Critical]") {
+				mType = QtMsgType::QtFatalMsg;
+				title = this->generateTitle(proc, tr("⚠ Fatal Error ⚠"));
+			} else
+				continue;
+
+			emit showMessage(mType, title, message);
+		}
+	}
+}
+
 QString ToolManager::generateTitle(QProcess *process, const QString &title)
 {
 	return tr("%1 %2 — %3")
@@ -227,6 +264,7 @@ ToolManager::InstanceInfo::InstanceInfo(bool isServer) :
 	isServer(isServer),
 	outBuffer(),
 	errBuffer(),
+	errorLog(),
 	serverAwaiter()
 {}
 

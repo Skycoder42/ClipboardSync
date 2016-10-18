@@ -114,7 +114,7 @@ void SyncServer::quitServer()
 {
 	this->server->close();
 	foreach(auto client, this->clients)
-		client->closeConnection(true);
+		client->closeConnection();
 }
 
 void SyncServer::syncAll()

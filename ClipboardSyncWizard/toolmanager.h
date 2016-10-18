@@ -41,7 +41,7 @@ public slots:
 					  const int port,
 					  const QString &authPass,
 					  const QString &certPath,
-					  const QString &cerPass,
+					  const QString &certPass,
 					  bool localOnly);
 
 	void performAction(const QString &name, Actions action);
@@ -59,12 +59,14 @@ private slots:
 	void procFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
 	void procOutReady();
+	void procErrReady();
 
 private:
 	struct InstanceInfo {
 		bool isServer;
 		QByteArray outBuffer;
 		QByteArray errBuffer;
+		QByteArray errorLog;
 
 		struct ServerAwaiter : public ServerInfo {
 			bool doesAwait;

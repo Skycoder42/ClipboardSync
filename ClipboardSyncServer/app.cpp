@@ -67,7 +67,7 @@ int App::exec()
 			this->syncServer, &SyncServer::quitServer);
 
 	if(parser.isSet("s")) {
-		if(!this->syncServer->setupSecurity(parser.value("s"), parser.value("a")))
+		if(!this->syncServer->setupSecurity(parser.value("s"), parser.value("k")))
 			return EXIT_FAILURE;
 	}
 
