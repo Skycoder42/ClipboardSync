@@ -23,6 +23,8 @@ const QString MainWizard::ClientCertFormatField(QStringLiteral("customFormat"));
 MainWizard::MainWizard(ToolManager *manager, QWidget *parent) :
 	QWizard(parent, Qt::WindowCloseButtonHint)
 {
+	this->setWindowModality(Qt::NonModal);
+	this->setAttribute(Qt::WA_DeleteOnClose);
 	this->setWindowTitle(QApplication::applicationDisplayName() +
 						 tr(" — Setup Wizard"));
 
@@ -35,8 +37,12 @@ MainWizard::MainWizard(ToolManager *manager, QWidget *parent) :
 	this->setStartId(IntroPageId);
 }
 
-bool MainWizard::createInstance(ToolManager *manager, QWidget *parent)
+MainWizard *MainWizard::createInstance(ToolManager *manager, QWidget *parent)
 {
-	MainWizard wizard(manager, parent);
-	return wizard.exec() == QDialog::Accepted;
+	auto wizard = new MainWizard(manager, parent);
+	wizard->show();
+	wizard->raise();
+	wizard->activateWindow();
+	qApp->alert(wizard);
+	return wizard;
 }

@@ -42,10 +42,10 @@ void MenuManager::addServer(const QString &name)
 	menu->addAction(tr("Show Connected Cl&ients"), this, [=](){
 		emit performAction(name, ToolManager::Peers);
 	});
-	menu->addSeparator();
 	menu->addAction(tr("Show Server &Log"), this, [=](){
 		emit performAction(name, ToolManager::Log);
 	});
+	menu->addSeparator();
 	menu->addAction(tr("&Quit Server"), this, [=](){
 		emit performAction(name, ToolManager::Close);
 	});

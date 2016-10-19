@@ -36,6 +36,7 @@ public:
 	~ToolManager();
 
 	bool hasName(const QString &name) const;
+	QString createTitle(const QString &name, const QString &title) const;
 
 public slots:
 	void createServer(const QString &name,
@@ -53,6 +54,7 @@ signals:
 	void serverStatusLoaded(const QString &name, ServerInfo serverInfo);
 
 	void showMessage(QtMsgType type, const QString &title, const QString &message);
+	void showLog(const QString &name, const QByteArray &log);
 
 private slots:
 	void procStarted();
@@ -83,7 +85,7 @@ private:
 	QHash<QString, QProcess*> processes;
 	QHash<QProcess*, InstanceInfo> procInfos;
 
-	QString generateTitle(QProcess *process, const QString &title);
+	QString generateTitle(QProcess *process, const QString &title) const;
 	QString procName(QProcess *process) const;
 	bool isActive(QProcess *process) const;
 	void remove(QProcess *process);

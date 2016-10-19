@@ -52,7 +52,7 @@ public:
 
 	explicit MainWizard(ToolManager *manager, QWidget *parent = nullptr);
 
-	static bool createInstance(ToolManager *manager, QWidget *parent = nullptr);
+	static MainWizard *createInstance(ToolManager *manager, QWidget *parent = nullptr);
 };
 
 #define REQUIRED_FIELD(x) (x + QLatin1Char('*'))

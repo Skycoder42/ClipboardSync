@@ -6,6 +6,7 @@
 #include <QMenu>
 #include "toolmanager.h"
 #include "menumanager.h"
+#include "logdialog.h"
 
 class App : public QApplication
 {
@@ -25,10 +26,14 @@ private slots:
 	void showMessage(QtMsgType type, const QString &title, const QString &message);
 	void serverStatusLoaded(const QString &name, ToolManager::ServerInfo info);
 
+	void showLog(const QString &name, const QByteArray &log);
+
 private:
 	QSystemTrayIcon *trayIco;
 	ToolManager *toolManager;
 	MenuManager *menuManager;
+
+	QHash<QString, LogDialog*> logDialogs;
 
 	void init();
 };

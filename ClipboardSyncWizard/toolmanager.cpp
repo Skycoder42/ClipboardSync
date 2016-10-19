@@ -37,6 +37,15 @@ bool ToolManager::hasName(const QString &name) const
 	return this->processes.contains(name);
 }
 
+QString ToolManager::createTitle(const QString &name, const QString &title) const
+{
+	auto proc = this->processes.value(name, nullptr);
+	if(proc)
+		return this->generateTitle(proc, title);
+	else
+		return title;
+}
+
 void ToolManager::createServer(const QString &name, const int port, const QString &authPass, const QString &certPath, const QString &certPass, bool localOnly)
 {
 	auto proc = new QProcess(this);
@@ -75,7 +84,6 @@ void ToolManager::createServer(const QString &name, const int port, const QStrin
 
 	this->processes.insert(name, proc);
 	this->procInfos.insert(proc, true);
-	qDebug() << args;
 	proc->start(QIODevice::ReadWrite);
 }
 
@@ -94,7 +102,7 @@ void ToolManager::performAction(const QString &name, ToolManager::Actions action
 			proc->write("clear\n");
 			break;
 		case Log:
-			DialogMaster::information(nullptr, QString::fromUtf8(this->procInfos[proc].errorLog));//TODO log box
+			emit showLog(name, this->procInfos[proc].errorLog);
 			break;
 		case Status:
 			this->procInfos[proc].serverAwaiter.doesAwait = true;
@@ -224,7 +232,7 @@ void ToolManager::procErrReady()
 	}
 }
 
-QString ToolManager::generateTitle(QProcess *process, const QString &title)
+QString ToolManager::generateTitle(QProcess *process, const QString &title) const
 {
 	return tr("%1 %2 — %3")
 			.arg(this->procInfos[process].isServer ? tr("Server") : tr("Client"))

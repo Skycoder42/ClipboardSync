@@ -10,7 +10,8 @@ App::App(int &argc, char **argv) :
 	QApplication(argc, argv),
 	trayIco(nullptr),
 	toolManager(nullptr),
-	menuManager(nullptr)
+	menuManager(nullptr),
+	logDialogs()
 {
 	setApplicationName(TARGET);
 	setApplicationVersion(VERSION);
@@ -29,12 +30,6 @@ int App::exec()
 {
 	this->trayIco->show();
 
-	//DEBUG --> dynamic only if no config!
-	this->menuManager->setCreateEnabled(false);
-	if(!MainWizard::createInstance(this->toolManager))
-		return EXIT_FAILURE;
-	this->menuManager->setCreateEnabled(true);
-
 	return QApplication::exec();
 }
 
@@ -46,8 +41,10 @@ bool App::testNameUnique(const QString &name) const
 void App::showCreate()
 {
 	this->menuManager->setCreateEnabled(false);
-	MainWizard::createInstance(this->toolManager);
-	this->menuManager->setCreateEnabled(true);
+	auto wiz = MainWizard::createInstance(this->toolManager);
+	connect(wiz, &MainWizard::destroyed, this, [this](){
+		this->menuManager->setCreateEnabled(true);
+	});
 }
 
 void App::showMessage(QtMsgType type, const QString &title, const QString &message)
@@ -96,6 +93,24 @@ void App::serverStatusLoaded(const QString &name, ToolManager::ServerInfo info)
 	this->alert(box);
 }
 
+void App::showLog(const QString &name, const QByteArray &log)
+{
+	auto logDiag = this->logDialogs.value(name, nullptr);
+	if(!logDiag) {
+		logDiag = new LogDialog(this->toolManager->createTitle(name, tr("Debug Log")));
+		connect(logDiag, &LogDialog::reloadTriggered, this, [=](){
+			this->toolManager->performAction(name, ToolManager::Log);
+		});
+		connect(logDiag, &LogDialog::destroyed, this, [=](){
+			this->logDialogs.remove(name);
+		}, Qt::DirectConnection);
+		this->logDialogs.insert(name, logDiag);
+	}
+
+	logDiag->reloadLog(log);
+	logDiag->popup();
+}
+
 void App::init()
 {
 	this->trayIco = new QSystemTrayIcon(windowIcon(), this);
@@ -109,10 +124,13 @@ void App::init()
 			this->menuManager, &MenuManager::addServer);
 	connect(this->toolManager, &ToolManager::instanceClosed,
 			this->menuManager, &MenuManager::removeInstance);
-	connect(this->toolManager, &ToolManager::serverStatusLoaded,
-			this, &App::serverStatusLoaded);
 	connect(this->menuManager, &MenuManager::performAction,
 			this->toolManager, &ToolManager::performAction);
+
+	connect(this->toolManager, &ToolManager::serverStatusLoaded,
+			this, &App::serverStatusLoaded);
+	connect(this->toolManager, &ToolManager::showLog,
+			this, &App::showLog);
 }
 
 int main(int argc, char *argv[])
