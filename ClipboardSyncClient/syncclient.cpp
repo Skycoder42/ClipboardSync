@@ -1,6 +1,7 @@
 #include "syncclient.h"
 #include <QUrl>
 #include <QNetworkRequest>
+#include <QCoreApplication>
 #include "synccore.h"
 
 SyncClient::SyncClient(const QString &clientName, QObject *parent) :
@@ -114,10 +115,11 @@ void SyncClient::error(QAbstractSocket::SocketError error)
 
 void SyncClient::disconnected()
 {
-	qCritical() << "Server closed the connection ("
-				<< (int)this->socket->closeCode()
-				<< "):"
-				<< this->socket->closeReason();
+	qDebug() << "Server closed the connection ("
+			 << (int)this->socket->closeCode()
+			 << "):"
+			 << this->socket->closeReason();
+	qApp->quit();
 }
 
 void SyncClient::sslErrors(const QList<QSslError> &errors)

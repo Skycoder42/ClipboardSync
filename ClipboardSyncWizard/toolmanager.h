@@ -48,6 +48,7 @@ public slots:
 					  bool localOnly);
 
 	void performAction(const QString &name, Actions action);
+	void removeClient(const QString &serverName, const QString &clientName);
 
 signals:
 	void serverCreated(const QString &name);

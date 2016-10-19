@@ -38,3 +38,14 @@ void PeersDialog::popup()
 	this->activateWindow();
 	qApp->alert(this);
 }
+
+void PeersDialog::on_actionDisconnect_Client_triggered()
+{
+	auto index = this->ui->treeView->currentIndex();
+	if(index.isValid()) {
+		auto row = index.row();
+		auto item = this->model->item(row);
+		emit closeClient(item->text());
+		this->model->removeRow(row);
+	}
+}

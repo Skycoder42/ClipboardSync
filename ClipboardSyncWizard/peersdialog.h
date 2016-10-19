@@ -22,6 +22,10 @@ public slots:
 
 signals:
 	void reloadTriggered();
+	void closeClient(const QString &name);
+
+private slots:
+	void on_actionDisconnect_Client_triggered();
 
 private:
 	Ui::PeersDialog *ui;

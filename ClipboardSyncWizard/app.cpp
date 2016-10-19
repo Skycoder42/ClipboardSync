@@ -120,6 +120,9 @@ void App::showPeers(const QString &name, QStandardItemModel *peerModel)
 		connect(peerDiag, &PeersDialog::reloadTriggered, this, [=](){
 			this->toolManager->performAction(name, ToolManager::Peers);
 		});
+		connect(peerDiag, &PeersDialog::closeClient, this, [=](QString clientName){
+			this->toolManager->removeClient(name, clientName);
+		});
 		connect(peerDiag, &PeersDialog::destroyed, this, [=](){
 			this->peersDialogs.remove(name);
 		}, Qt::DirectConnection);

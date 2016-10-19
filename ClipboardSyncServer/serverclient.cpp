@@ -49,8 +49,8 @@ void ServerClient::printConnected() const
 {
 	if(this->showInfo) {
 		qInfo() << "info:"
-				<< qUtf8Printable(tr("New Client connected!;A new client with the name \"%1\"has connected to the server.")
-							  .arg(socket->origin()));
+				<< qUtf8Printable(tr("New Client connected!;A new client with the name \"%1\" has connected to the server.")
+								  .arg(socket->origin()));
 	}
 	qDebug() << "New client connected:" << socket->origin();
 }
@@ -60,7 +60,7 @@ QJsonValue ServerClient::peerInfo() const
 	QJsonObject info;
 	info[QStringLiteral("name")] = this->socket->origin();
 	info[QStringLiteral("address")] = this->socket->peerAddress().toString();
-	info[QStringLiteral("port")] = this->socket->localPort();
+	info[QStringLiteral("port")] = this->socket->peerPort();
 	return info;
 }
 
@@ -110,11 +110,16 @@ void ServerClient::error(QAbstractSocket::SocketError error)
 
 void ServerClient::disconnected()
 {
-	qWarning() << qUtf8Printable(this->socket->origin()) << "-->"
-			   << "Client closed the connection ("
-			   << (int)this->socket->closeCode()
-			   << "):"
-			   << this->socket->closeReason();
+	if(this->showInfo) {
+		qInfo() << "info:"
+				<< qUtf8Printable(tr("Client with name \"%1\" has closed the connection!")
+								  .arg(socket->origin()));
+	}
+	qDebug() << qUtf8Printable(this->socket->origin()) << "-->"
+			 << "Client closed the connection ("
+			 << (int)this->socket->closeCode()
+			 << "):"
+			 << this->socket->closeReason();
 	this->deleteLater();
 }
 

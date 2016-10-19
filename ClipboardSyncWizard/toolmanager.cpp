@@ -120,6 +120,13 @@ void ToolManager::performAction(const QString &name, ToolManager::Actions action
 	}
 }
 
+void ToolManager::removeClient(const QString &serverName, const QString &clientName)
+{
+	auto proc = this->processes.value(serverName, nullptr);
+	if(proc)
+		proc->write("close " + clientName.toUtf8() + "\n");
+}
+
 void ToolManager::procStarted()
 {
 	auto proc = qobject_cast<QProcess*>(QObject::sender());
@@ -184,7 +191,7 @@ void ToolManager::procOutReady()
 					QJsonArray peerList = QJsonDocument::fromJson(param, &error).array();
 					if(error.error == QJsonParseError::NoError) {
 						auto model = new QStandardItemModel(0, 3, this);
-						model->setHorizontalHeaderLabels({tr("Name"), tr("IP-Address"), tr("Local Port")});
+						model->setHorizontalHeaderLabels({tr("Name"), tr("IP-Address"), tr("Port")});
 						foreach(auto peer, peerList) {
 							auto obj = peer.toObject();
 							model->appendRow({
