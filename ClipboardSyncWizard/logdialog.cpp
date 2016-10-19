@@ -21,17 +21,17 @@ private:
 };
 
 LogDialog::LogDialog(const QString &title, QWidget *parent) :
-	QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowMinMaxButtonsHint),
+	QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint),
 	ui(new Ui::LogDialog)
 {
 	this->ui->setupUi(this);
 	this->setWindowTitle(title);
 	this->setAttribute(Qt::WA_DeleteOnClose);
 
-	new KeyHighlighter(this->ui->textBrowser->document());
-
 	connect(this->ui->reloadButton, &QPushButton::clicked,
 			this, &LogDialog::reloadTriggered);
+
+	new KeyHighlighter(this->ui->textBrowser->document());
 }
 
 LogDialog::~LogDialog()
@@ -46,13 +46,7 @@ void LogDialog::reloadLog(const QByteArray &log)
 
 void LogDialog::popup()
 {
-	this->show();
-	if(this->windowState().testFlag(Qt::WindowMinimized)) {
-		if(this->windowState().testFlag(Qt::WindowMaximized))
-			this->showMaximized();
-		else
-			this->showNormal();
-	}
+	this->showNormal();
 	this->raise();
 	this->activateWindow();
 	qApp->alert(this);

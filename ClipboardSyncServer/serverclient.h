@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QWebSocket>
+#include <QJsonValue>
 class SyncServer;
 
 class ServerClient : public QObject
@@ -18,6 +19,7 @@ public:
 
 	QString name() const;
 	void printConnected() const;
+	QJsonValue peerInfo() const;
 
 	bool isInfoShown() const;
 

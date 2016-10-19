@@ -11,7 +11,8 @@ App::App(int &argc, char **argv) :
 	trayIco(nullptr),
 	toolManager(nullptr),
 	menuManager(nullptr),
-	logDialogs()
+	logDialogs(),
+	peersDialogs()
 {
 	setApplicationName(TARGET);
 	setApplicationVersion(VERSION);
@@ -111,6 +112,24 @@ void App::showLog(const QString &name, const QByteArray &log)
 	logDiag->popup();
 }
 
+void App::showPeers(const QString &name, QStandardItemModel *peerModel)
+{
+	auto peerDiag = this->peersDialogs.value(name, nullptr);
+	if(!peerDiag) {
+		peerDiag = new PeersDialog(this->toolManager->createTitle(name, tr("Connected Peers")));
+		connect(peerDiag, &PeersDialog::reloadTriggered, this, [=](){
+			this->toolManager->performAction(name, ToolManager::Peers);
+		});
+		connect(peerDiag, &PeersDialog::destroyed, this, [=](){
+			this->peersDialogs.remove(name);
+		}, Qt::DirectConnection);
+		this->peersDialogs.insert(name, peerDiag);
+	}
+
+	peerDiag->reloadPeers(peerModel);
+	peerDiag->popup();
+}
+
 void App::init()
 {
 	this->trayIco = new QSystemTrayIcon(windowIcon(), this);
@@ -131,6 +150,8 @@ void App::init()
 			this, &App::serverStatusLoaded);
 	connect(this->toolManager, &ToolManager::showLog,
 			this, &App::showLog);
+	connect(this->toolManager, &ToolManager::showPeers,
+			this, &App::showPeers);
 }
 
 int main(int argc, char *argv[])

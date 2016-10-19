@@ -13,6 +13,7 @@
 #include <QNetworkReply>
 #include <QUrl>
 #include <QDebug>
+#include <QJsonArray>
 
 SyncServer::SyncServer(const QString &serverName, QObject *parent) :
 	QObject(parent),
@@ -158,6 +159,14 @@ void SyncServer::printRemoteInfo() const
 		request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
 		this->ipNam->get(request);
 	}
+}
+
+void SyncServer::printPeers() const
+{
+	QJsonArray peerList;
+	foreach(auto client, this->clients)
+		peerList.append(client->peerInfo());
+	qInfo() << "peers:" << QJsonDocument(peerList).toJson(QJsonDocument::Compact).constData();
 }
 
 void SyncServer::performSync(ServerClient *origin, const QByteArray &data)

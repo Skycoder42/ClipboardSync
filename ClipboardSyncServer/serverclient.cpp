@@ -1,6 +1,7 @@
 #include "serverclient.h"
 #include "synccore.h"
 #include "syncserver.h"
+#include <QJsonObject>
 
 ServerClient::ServerClient(QWebSocket *socket, bool showInfo, SyncServer *parent) :
 	QObject(parent),
@@ -52,6 +53,15 @@ void ServerClient::printConnected() const
 							  .arg(socket->origin()));
 	}
 	qDebug() << "New client connected:" << socket->origin();
+}
+
+QJsonValue ServerClient::peerInfo() const
+{
+	QJsonObject info;
+	info[QStringLiteral("name")] = this->socket->origin();
+	info[QStringLiteral("address")] = this->socket->peerAddress().toString();
+	info[QStringLiteral("port")] = this->socket->localPort();
+	return info;
 }
 
 bool ServerClient::isInfoShown() const

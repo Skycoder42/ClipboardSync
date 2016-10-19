@@ -1,5 +1,8 @@
 #include "toolmanager.h"
 #include <dialogmaster.h>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 #ifdef QT_NO_DEBUG
 # define SERVER_TOOL QStringLiteral("./ClipboardSyncServer")
@@ -175,7 +178,27 @@ void ToolManager::procOutReady()
 					emit showMessage(QtMsgType::QtInfoMsg, title, text);
 				}
 
-				//init data
+				//check peers
+				if(command == "peers") {
+					QJsonParseError error;
+					QJsonArray peerList = QJsonDocument::fromJson(param, &error).array();
+					if(error.error == QJsonParseError::NoError) {
+						auto model = new QStandardItemModel(0, 3, this);
+						model->setHorizontalHeaderLabels({tr("Name"), tr("IP-Address"), tr("Local Port")});
+						foreach(auto peer, peerList) {
+							auto obj = peer.toObject();
+							model->appendRow({
+												 new QStandardItem(obj[QStringLiteral("name")].toString()),
+												 new QStandardItem(obj[QStringLiteral("address")].toString()),
+												 new QStandardItem(QString::number(obj[QStringLiteral("port")].toInt()))
+											 });
+						}
+						emit showPeers(this->procName(proc), model);
+					} else
+						qWarning() << "Unable to parse result of \"peers\" command";
+				}
+
+				//status data
 				if(this->procInfos[proc].serverAwaiter.doesAwait) {
 					auto &awaiter = this->procInfos[proc].serverAwaiter;
 

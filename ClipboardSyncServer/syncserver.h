@@ -25,6 +25,7 @@ public slots:
 	void printPort() const;
 	void printNetInfo() const;
 	void printRemoteInfo() const;
+	void printPeers() const;
 	void performSync(ServerClient *origin, const QByteArray &data);
 	void setShowInfo(bool show);
 

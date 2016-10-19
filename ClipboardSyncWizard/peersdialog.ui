@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>LogDialog</class>
- <widget class="QDialog" name="LogDialog">
+ <class>PeersDialog</class>
+ <widget class="QDialog" name="PeersDialog">
   <property name="windowModality">
    <enum>Qt::NonModal</enum>
   </property>
@@ -18,37 +18,41 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTextBrowser" name="textBrowser">
-     <property name="font">
-      <font>
-       <family>Courier New</family>
-      </font>
+    <widget class="QTreeView" name="treeView">
+     <property name="contextMenuPolicy">
+      <enum>Qt::ActionsContextMenu</enum>
      </property>
-     <property name="tabChangesFocus">
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="tabKeyNavigation">
       <bool>true</bool>
      </property>
-     <property name="lineWrapMode">
-      <enum>QTextEdit::NoWrap</enum>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
      </property>
-     <property name="tabStopWidth">
-      <number>40</number>
-     </property>
-     <property name="acceptRichText">
+     <property name="rootIsDecorated">
       <bool>false</bool>
      </property>
-     <property name="textInteractionFlags">
-      <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+     <property name="itemsExpandable">
+      <bool>false</bool>
      </property>
-     <property name="placeholderText">
-      <string>This box will show the debug log. If you see this text, no output was produced by the component.</string>
-     </property>
-     <property name="openExternalLinks">
+     <property name="sortingEnabled">
       <bool>true</bool>
+     </property>
+     <property name="animated">
+      <bool>true</bool>
+     </property>
+     <property name="expandsOnDoubleClick">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QToolButton" name="closeButton"/>
+     </item>
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
@@ -66,9 +70,6 @@
       <widget class="QPushButton" name="reloadButton">
        <property name="text">
         <string>Reload</string>
-       </property>
-       <property name="shortcut">
-        <string>F5</string>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -91,21 +92,29 @@
     </layout>
    </item>
   </layout>
+  <action name="actionDisconnect_Client">
+   <property name="text">
+    <string>Disconnect Client</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
   <connection>
    <sender>okButton</sender>
    <signal>clicked()</signal>
-   <receiver>LogDialog</receiver>
+   <receiver>PeersDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>345</x>
-     <y>281</y>
+     <x>332</x>
+     <y>279</y>
     </hint>
     <hint type="destinationlabel">
-     <x>186</x>
+     <x>132</x>
      <y>271</y>
     </hint>
    </hints>

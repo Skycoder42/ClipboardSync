@@ -41,7 +41,8 @@ HEADERS  += \
     toolmanager.h \
     app.h \
     menumanager.h \
-    logdialog.h
+    logdialog.h \
+    peersdialog.h
 
 SOURCES += intropage.cpp \
     mainwizard.cpp \
@@ -51,14 +52,16 @@ SOURCES += intropage.cpp \
     toolmanager.cpp \
     app.cpp \
     menumanager.cpp \
-    logdialog.cpp
+    logdialog.cpp \
+    peersdialog.cpp
 
 FORMS    += \
     intropage.ui \
     serversetuppage.ui \
     clientsetuppage.ui \
     finalpage.ui \
-    logdialog.ui
+    logdialog.ui \
+    peersdialog.ui
 
 RESOURCES += \
     ../sync_global_res.qrc

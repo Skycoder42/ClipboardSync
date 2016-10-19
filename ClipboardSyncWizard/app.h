@@ -4,9 +4,11 @@
 #include <QApplication>
 #include <QSystemTrayIcon>
 #include <QMenu>
+#include <QStandardItemModel>
 #include "toolmanager.h"
 #include "menumanager.h"
 #include "logdialog.h"
+#include "peersdialog.h"
 
 class App : public QApplication
 {
@@ -27,6 +29,7 @@ private slots:
 	void serverStatusLoaded(const QString &name, ToolManager::ServerInfo info);
 
 	void showLog(const QString &name, const QByteArray &log);
+	void showPeers(const QString &name, QStandardItemModel *peerModel);
 
 private:
 	QSystemTrayIcon *trayIco;
@@ -34,6 +37,7 @@ private:
 	MenuManager *menuManager;
 
 	QHash<QString, LogDialog*> logDialogs;
+	QHash<QString, PeersDialog*> peersDialogs;
 
 	void init();
 };

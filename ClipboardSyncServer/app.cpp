@@ -91,6 +91,8 @@ void App::commandReceived(const QByteArray &command)
 		this->syncServer->printNetInfo();
 	else if(command == "remoteinfo")
 		this->syncServer->printRemoteInfo();
+	else if(command == "peers")
+		this->syncServer->printPeers();
 	else if(command == "showconnectinfo")
 		this->syncServer->setShowInfo(true);
 	else if(command == "hideconnectinfo")

@@ -5,6 +5,7 @@
 #include <QHash>
 #include <QHostAddress>
 #include <QProcess>
+#include <QStandardItemModel>
 
 class ToolManager : public QObject
 {
@@ -55,6 +56,7 @@ signals:
 
 	void showMessage(QtMsgType type, const QString &title, const QString &message);
 	void showLog(const QString &name, const QByteArray &log);
+	void showPeers(const QString &name, QStandardItemModel *peerModel);
 
 private slots:
 	void procStarted();
