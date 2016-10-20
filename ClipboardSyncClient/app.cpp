@@ -18,7 +18,7 @@ App::App(int &argc, char **argv) :
 	QCoreApplication::setOrganizationDomain("com.Skycoder42");
 }
 
-int App::exec()//TODO single instance PER SERVER
+int App::exec()
 {
 	QCommandLineParser parser;
 	parser.addHelpOption();

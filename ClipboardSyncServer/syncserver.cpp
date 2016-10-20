@@ -34,7 +34,7 @@ bool SyncServer::setupSecurity(const QString &p12_file, const QString &passphras
 {
 	this->server = new QWebSocketServer(this->serverName, QWebSocketServer::SecureMode, this);
 	auto config = this->server->sslConfiguration();
-	config.setProtocol(QSsl::SecureProtocols);//TODO more security
+	config.setProtocol(QSsl::SecureProtocols);
 
 	QFile file(p12_file);
 	if(!file.open(QIODevice::ReadOnly)) {

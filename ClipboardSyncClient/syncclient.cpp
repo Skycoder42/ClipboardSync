@@ -28,7 +28,7 @@ SyncClient::SyncClient(const QString &clientName, QObject *parent) :
 bool SyncClient::setupSecurity(const QString &cert_file, const QString &format)
 {
 	auto config = this->socket->sslConfiguration();
-	config.setProtocol(QSsl::SecureProtocols);//TODO more security
+	config.setProtocol(QSsl::SecureProtocols);
 
 	if(cert_file == QStringLiteral("any")) {
 		qWarning() << "Client will accept all certificates without validation!";
