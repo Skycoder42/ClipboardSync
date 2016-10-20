@@ -98,7 +98,7 @@ void LogDialog::on_saveButton_clicked()
 {
 	QString selected;
 
-	QStringList filters = {
+	QStringList filters = {//TODO use mimetypes and default formats?
 		tr("OpenDocument Format (*.odf)"),
 		tr("Plain Text (*.txt)"),
 		tr("HyperText Markup Language (*.html *.htm)")
