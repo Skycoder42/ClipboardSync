@@ -205,6 +205,7 @@ void SyncServer::newConnection()
 			this->clients.removeOne(client);
 		});
 
+		client->sendName(this->serverName);
 		client->sendData(this->currentState);
 	} else
 		client->deleteLater();

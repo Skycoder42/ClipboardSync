@@ -87,6 +87,11 @@ void ServerClient::sendData(const QByteArray &data)
 		this->socket->sendBinaryMessage(data);
 }
 
+void ServerClient::sendName(const QString &name)
+{
+	this->socket->sendTextMessage(name);
+}
+
 void ServerClient::setShowInfo(bool showInfo)
 {
 	this->showInfo = showInfo;

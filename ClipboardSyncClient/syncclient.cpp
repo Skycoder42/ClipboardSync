@@ -7,8 +7,7 @@
 SyncClient::SyncClient(const QString &clientName, QObject *parent) :
 	QObject(parent),
 	socket(new QWebSocket(clientName, QWebSocketProtocol::VersionLatest, this)),
-	isSecure(false),
-	showInfo(false)
+	isSecure(false)
 {
 	connect(this->socket, &QWebSocket::connected,
 			this, &SyncClient::connected);
@@ -20,6 +19,8 @@ SyncClient::SyncClient(const QString &clientName, QObject *parent) :
 			this, &SyncClient::disconnected);
 	connect(this->socket, &QWebSocket::binaryMessageReceived,
 			this, &SyncClient::dataReceived);
+	connect(this->socket, &QWebSocket::textMessageReceived,
+			this, &SyncClient::nameReceived);
 
 	qDebug() << "Created client with name" << clientName;
 }
@@ -97,19 +98,14 @@ void SyncClient::sendData(const QByteArray &data)
 	this->socket->sendBinaryMessage(data);
 }
 
-void SyncClient::setShowInfo(bool show)
+void SyncClient::printServerName() const
 {
-	this->showInfo = show;
+	qInfo() << "servername:" << qUtf8Printable(this->serverName);
 }
 
 void SyncClient::connected()
 {
 	qDebug() << "Connected to server!";
-	if(this->showInfo) {
-		qInfo() << "info:"
-				<< qUtf8Printable(tr("Connected to server!;Connected to the server at"))
-				<< qUtf8Printable(this->socket->requestUrl().toString());
-	}
 }
 
 void SyncClient::error(QAbstractSocket::SocketError error)
@@ -141,4 +137,16 @@ void SyncClient::sslErrors(const QList<QSslError> &errors)
 				   << "):"
 				   << error.errorString().toUtf8();
 	}
+}
+
+void SyncClient::nameReceived(const QString &name)
+{
+	this->serverName = name;
+	if(name != this->socket->peerName()) {
+		qWarning() << "Remote server known as"
+				   << this->socket->peerName()
+				   << "but identified himself as"
+				   << name;
+	}
+	this->printServerName();
 }

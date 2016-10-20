@@ -26,6 +26,7 @@ public:
 public slots:
 	void closeConnection();
 	void sendData(const QByteArray &data);
+	void sendName(const QString &name);
 
 	void setShowInfo(bool showInfo);
 

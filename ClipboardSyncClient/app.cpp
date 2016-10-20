@@ -86,10 +86,8 @@ void App::commandReceived(const QByteArray &command)
 		this->clipController->syncNow();
 	else if(command == "clear")
 		this->clipController->clear();
-	else if(command == "showconnectinfo")
-		this->client->setShowInfo(true);
-	else if(command == "hideconnectinfo")
-		this->client->setShowInfo(false);
+	else if(command == "servername")
+		this->client->printServerName();
 	else
 		qWarning() << "Unknown command received:" << command;
 }
