@@ -10,10 +10,19 @@
 ClipboardController::ClipboardController(QObject *parent) :
 	QObject(parent),
 	clipboard(QGuiApplication::clipboard()),
-	skipNext(false)
+	skipNext(false),
+	interval(0),
+	syncTimer(new QTimer(this))
 {
 	connect(this->clipboard, &QClipboard::dataChanged,
 			this, &ClipboardController::clipDataChanged);
+	connect(this->syncTimer, &QTimer::timeout,
+			this, &ClipboardController::syncTrigger);
+}
+
+int ClipboardController::syncInterval() const
+{
+	return this->interval;
 }
 
 void ClipboardController::setClipboard(const QByteArray &data)
@@ -58,13 +67,36 @@ void ClipboardController::clear()
 	this->clipboard->clear();
 }
 
+void ClipboardController::setSyncInterval(int syncInterval)
+{
+	this->interval = syncInterval;
+	if(syncInterval == 0)
+		this->syncTimer->stop();
+	else
+		this->syncTimer->start(syncInterval);
+}
+
 void ClipboardController::clipDataChanged()
 {
-	if(this->skipNext) {
+	if(this->skipNext)
 		this->skipNext = false;
-		return;
+	else {
+		this->oldState = this->getData();
+		emit clipboardChanged(this->oldState);
 	}
+}
 
+void ClipboardController::syncTrigger()
+{
+	auto nState = this->getData();
+	if(nState != this->oldState) {
+		this->oldState = nState;
+		emit clipboardChanged(this->oldState);
+	}
+}
+
+QByteArray ClipboardController::getData() const
+{
 	auto mime = this->clipboard->mimeData();
 	auto formats = mime->formats();
 
@@ -82,6 +114,5 @@ void ClipboardController::clipDataChanged()
 			mimeObject[format] = QString::fromUtf8(mime->data(format).toBase64());
 	}
 
-	QJsonDocument doc(mimeObject);
-	emit clipboardChanged(doc.toBinaryData());
+	return QJsonDocument(mimeObject).toBinaryData();
 }

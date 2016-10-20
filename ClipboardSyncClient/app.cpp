@@ -1,11 +1,14 @@
 #include "app.h"
 #include <QCommandLineParser>
+#include <QRegularExpression>
+#include <QDir>
 
 #include <QDebug>
 
 App::App(int &argc, char **argv) :
 	QGuiApplication(argc, argv),
 	console(nullptr),
+	serverLock(nullptr),
 	client(nullptr),
 	clipController(nullptr)
 {
@@ -58,6 +61,15 @@ int App::exec()//TODO single instance PER SERVER
 			this, &App::commandReceived,
 			Qt::QueuedConnection);
 
+	//test no duplicates
+	if(!this->gainLock(parser.positionalArguments()[1])) {
+		qCritical() << "Another client on this machine is already connected to the very same server!"
+					<< "You can't have two clients for one server on the same machine."
+					<< "Server host address:"
+					<< qUtf8Printable(parser.positionalArguments()[1]);
+		return EXIT_FAILURE;
+	}
+
 	//client
 	this->client = new SyncClient(parser.positionalArguments()[0], this);
 	connect(this, &App::aboutToQuit,
@@ -77,7 +89,9 @@ int App::exec()//TODO single instance PER SERVER
 	connect(this->client, &SyncClient::dataReceived,
 			this->clipController, &ClipboardController::setClipboard);
 
-	return QCoreApplication::exec();
+	auto res = QCoreApplication::exec();
+	this->serverLock->unlock();
+	return res;
 }
 
 void App::commandReceived(const QByteArray &command)
@@ -88,8 +102,26 @@ void App::commandReceived(const QByteArray &command)
 		this->clipController->clear();
 	else if(command == "servername")
 		this->client->printServerName();
-	else
+	else if(command.startsWith("interval")) {
+		const static QRegularExpression regex(QStringLiteral(R"__(^interval(?:\s+)(\d*)$)__"));
+		auto match = regex.match(command);
+		if(match.hasMatch())
+			this->clipController->setSyncInterval(match.captured(1).toInt());
+	} else
 		qWarning() << "Unknown command received:" << command;
+}
+
+bool App::gainLock(const QString &host)
+{
+	QDir tempDir(QDir::temp());
+	const auto subDir = QStringLiteral("./%1_clilk").arg(applicationName());
+	tempDir.mkpath(subDir);
+	tempDir.cd(subDir);
+
+	const auto lockName = QString::fromUtf8("cl_lock_" + host.toUtf8().toBase64() + ".lock");
+	this->serverLock.reset(new QLockFile(tempDir.absoluteFilePath(lockName)));
+
+	return this->serverLock->tryLock();
 }
 
 int main(int argc, char *argv[])

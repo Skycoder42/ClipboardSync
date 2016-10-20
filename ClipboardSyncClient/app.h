@@ -3,6 +3,8 @@
 
 #include <QGuiApplication>
 #include <QHostAddress>
+#include <QLockFile>
+#include <QScopedPointer>
 #include "console.h"
 #include "syncclient.h"
 #include "clipboardcontroller.h"
@@ -20,8 +22,11 @@ private slots:
 
 private:
 	Console *console;
+	QScopedPointer<QLockFile> serverLock;
 	SyncClient *client;
 	ClipboardController *clipController;
+
+	bool gainLock(const QString &host);
 };
 
 
