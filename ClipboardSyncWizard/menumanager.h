@@ -26,9 +26,13 @@ public slots:
 
 	void setCreateEnabled(bool createEnabled);
 
+private slots:
+	void showSetSync(const QString &name);
+
 signals:
 	void closeInstance(const QString &name);
 	void performAction(const QString &name, ToolManager::Actions action);
+	void setSyncInterval(const QString &name, int interval);
 
 	void createEnabledChanged(bool createEnabled);
 

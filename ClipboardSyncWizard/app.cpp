@@ -151,6 +151,8 @@ void App::init()
 			this->menuManager, &MenuManager::removeInstance);
 	connect(this->menuManager, &MenuManager::performAction,
 			this->toolManager, &ToolManager::performAction);
+	connect(this->menuManager, &MenuManager::setSyncInterval,
+			this->toolManager, &ToolManager::setSyncInterval);
 
 	connect(this->toolManager, &ToolManager::serverStatusLoaded,
 			this, &App::serverStatusLoaded);

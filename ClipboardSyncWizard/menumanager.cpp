@@ -1,5 +1,6 @@
 #include "menumanager.h"
 #include "app.h"
+#include <dialogmaster.h>
 
 MenuManager::MenuManager(QSystemTrayIcon *trayIco, QObject *parent) :
 	QObject(parent),
@@ -66,6 +67,9 @@ void MenuManager::addClient(const QString &name)
 	menu->addAction(tr("&Clear Clipboard Data"), this, [=](){
 		emit performAction(name, ToolManager::Clear);
 	});
+	menu->addAction(tr("Set Sync &Interval"), this, [=](){
+		this->showSetSync(name);
+	});
 	menu->addSeparator();
 	menu->addAction(tr("Show Client &Log"), this, [=](){
 		emit performAction(name, ToolManager::Log);
@@ -97,6 +101,23 @@ void MenuManager::setCreateEnabled(bool createEnabled)
 	this->createEnabled = createEnabled;
 	this->menu->actions().first()->setEnabled(createEnabled);
 	emit createEnabledChanged(createEnabled);
+}
+
+void MenuManager::showSetSync(const QString &name)
+{
+	bool ok;
+	auto interval = DialogMaster::getDouble(nullptr,
+											tr("Enter the interval (in seconds) to check for an updated clipboard.\n"
+											"To deactive periodic sync checks, simply enter 0:"),
+											0.0,
+											0.0,
+											86400.0,
+											tr("Set Sync Interval"),
+											3,
+											&ok);
+	if(ok)
+		emit setSyncInterval(name, interval * 1000);
+
 }
 
 void MenuManager::reloadTooltip()

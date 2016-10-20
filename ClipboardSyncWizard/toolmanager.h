@@ -57,6 +57,7 @@ public slots:
 
 	void performAction(const QString &name, Actions action);
 	void removeClient(const QString &serverName, const QString &clientName);
+	void setSyncInterval(const QString &clientName, int interval);
 
 signals:
 	void serverCreated(const QString &name);

@@ -88,6 +88,7 @@ void ClipboardController::clipDataChanged()
 
 void ClipboardController::syncTrigger()
 {
+	qDebug(Q_FUNC_INFO);
 	auto nState = this->getData();
 	if(nState != this->oldState) {
 		this->oldState = nState;

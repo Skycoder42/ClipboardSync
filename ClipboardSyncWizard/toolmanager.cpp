@@ -114,8 +114,15 @@ void ToolManager::performAction(const QString &name, ToolManager::Actions action
 void ToolManager::removeClient(const QString &serverName, const QString &clientName)
 {
 	auto proc = this->processes.value(serverName, nullptr);
-	if(proc)
+	if(proc && this->procInfos[proc].isServer)
 		proc->write("close " + clientName.toUtf8() + "\n");
+}
+
+void ToolManager::setSyncInterval(const QString &clientName, int interval)
+{
+	auto proc = this->processes.value(clientName, nullptr);
+	if(proc && !this->procInfos[proc].isServer)
+		proc->write("interval " + QByteArray::number(interval) + "\n");
 }
 
 void ToolManager::procStarted()
