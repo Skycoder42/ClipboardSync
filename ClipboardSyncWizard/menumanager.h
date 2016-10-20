@@ -5,6 +5,7 @@
 #include <QSystemTrayIcon>
 #include <QScopedPointer>
 #include <QAction>
+#include <QPointer>
 #include "toolmanager.h"
 
 class MenuManager : public QObject
@@ -32,7 +33,7 @@ signals:
 	void createEnabledChanged(bool createEnabled);
 
 private:
-	QSystemTrayIcon *trayIco;
+	QPointer<QSystemTrayIcon> trayIco;
 	QScopedPointer<QMenu, QScopedPointerDeleteLater> menu;
 	bool createEnabled;
 

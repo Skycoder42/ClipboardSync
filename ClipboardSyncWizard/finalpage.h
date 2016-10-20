@@ -30,7 +30,7 @@ private slots:
 
 	void errorOccured(QtMsgType type, const QString &title, const QString &message);
 	void serverCreated(const QString &, const ToolManager::ServerInfo &info);
-	void clientCreated();
+	void clientCreated(const QString &, const QString &serverName);
 
 private:
 	Ui::FinalPage *ui;
@@ -41,6 +41,7 @@ private:
 	bool sComp;
 	bool cComp;
 	bool complete;
+	QString svrName;
 	QString error;
 
 	void createServer();

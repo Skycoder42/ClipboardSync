@@ -124,5 +124,6 @@ void MenuManager::reloadTooltip()
 			tooltip.append(tr("\n - ") + client);
 	}
 
-	this->trayIco->setToolTip(tooltip);
+	if(this->trayIco)
+		this->trayIco->setToolTip(tooltip);
 }

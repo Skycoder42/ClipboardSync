@@ -11,6 +11,7 @@ FinalPage::FinalPage(ToolManager *manager, QWidget *parent) :
 	sComp(false),
 	cComp(false),
 	complete(false),
+	svrName(),
 	error()
 {
 	this->ui->setupUi(this);
@@ -35,7 +36,7 @@ void FinalPage::initializePage()
 			this, &FinalPage::errorOccured);
 	connect(this->manager, &ToolManager::serverStatusLoaded,
 			this, &FinalPage::serverCreated);
-	connect(this->manager, &ToolManager::clientCreated,//TODO after connect
+	connect(this->manager, &ToolManager::clientStatusLoaded,
 			this, &FinalPage::clientCreated);
 
 	this->wizard()->setOption(QWizard::HaveCustomButton1, true);
@@ -50,7 +51,7 @@ void FinalPage::cleanupPage()
 			   this, &FinalPage::errorOccured);
 	disconnect(this->manager, &ToolManager::serverStatusLoaded,
 			   this, &FinalPage::serverCreated);
-	disconnect(this->manager, &ToolManager::clientCreated,//TODO after connect
+	disconnect(this->manager, &ToolManager::clientStatusLoaded,
 			   this, &FinalPage::clientCreated);
 
 	this->ui->textBrowser->clear();
@@ -58,6 +59,7 @@ void FinalPage::cleanupPage()
 	this->sComp = false;
 	this->cComp = false;
 	this->complete = false;
+	this->svrName.clear();
 	this->error.clear();
 	this->wizard()->setOption(QWizard::HaveCustomButton1, false);
 }
@@ -110,7 +112,7 @@ void FinalPage::reloadText()
 			detailsText += tr("&nbsp;– Accept all clients");
 
 		if(this->sComp)
-			detailsText += QStringLiteral("<br/><br/><font color=\"#088A08\">Server successfully stared!</font>");
+			detailsText += tr("<br/><br/><font color=\"#088A08\">Server successfully stared!</font>");
 
 		detailsText += QStringLiteral("</p>");
 	}
@@ -149,8 +151,10 @@ void FinalPage::reloadText()
 			Q_UNREACHABLE();
 		}
 
-		if(this->cComp)
-			detailsText += QStringLiteral("<br/><br/><font color=\"#088A08\">Client successfully stared!</font>");
+		if(this->cComp) {
+			detailsText += tr("<br/><br/><font color=\"#088A08\">Client successfully stared! (Server named %1)</font>")
+					.arg(this->svrName.isEmpty() ? tr("<Unknown>") : this->svrName);
+		}
 
 		detailsText += QStringLiteral("</p>");
 	}
@@ -208,9 +212,10 @@ void FinalPage::serverCreated(const QString &, const ToolManager::ServerInfo &in
 	this->reloadText();
 }
 
-void FinalPage::clientCreated()
+void FinalPage::clientCreated(const QString &, const QString &serverName)
 {
 	this->createIndicator->cancel();
+	this->svrName = serverName;
 	this->cComp = true;
 	this->complete = true;
 	this->reloadText();

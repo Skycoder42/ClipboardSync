@@ -214,7 +214,8 @@ void ToolManager::procOutReady()
 					}
 				}
 			} else {
-				//TODO client out...
+				if(command == "servername")
+					emit clientStatusLoaded(this->procName(proc), QString::fromUtf8(param));
 			}
 		}
 	}

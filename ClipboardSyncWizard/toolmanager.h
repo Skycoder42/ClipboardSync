@@ -63,6 +63,7 @@ signals:
 	void clientCreated(const QString &name);
 	void instanceClosed(const QString &name);
 	void serverStatusLoaded(const QString &name, ServerInfo serverInfo);
+	void clientStatusLoaded(const QString &name, const QString &serverName);
 
 	void showMessage(QtMsgType type, const QString &title, const QString &message);
 	void showLog(const QString &name, const QByteArray &log);
