@@ -15,6 +15,9 @@
 # endif
 #endif
 
+const QString ToolManager::CertAny(QStringLiteral("any"));
+const QString ToolManager::CertSystem(QStringLiteral("default"));
+
 ToolManager::ToolManager(QObject *parent) :
 	QObject(parent),
 	processes(),
@@ -51,9 +54,6 @@ QString ToolManager::createTitle(const QString &name, const QString &title) cons
 
 void ToolManager::createServer(const QString &name, const int port, const QString &authPass, const QString &certPath, const QString &certPass, bool localOnly)
 {
-	auto proc = new QProcess(this);
-	proc->setProgram(SERVER_TOOL);
-
 	QStringList args;
 	if(port != 0)
 		args.append({QStringLiteral("--port"), QString::number(port)});
@@ -64,30 +64,21 @@ void ToolManager::createServer(const QString &name, const int port, const QStrin
 	if(localOnly)
 		args.append(QStringLiteral("--localonly"));
 	args.append(name);
-	proc->setArguments(args);
 
-	connect(proc, &QProcess::started,
-			this, &ToolManager::procStarted);
-	connect(proc, &QProcess::errorOccurred,
-			this, &ToolManager::procErrorOccurred);
-	connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-			this, &ToolManager::procFinished);
-	connect(proc, &QProcess::readyReadStandardOutput,
-			this, &ToolManager::procOutReady);
-	connect(proc, &QProcess::readyReadStandardError,
-			this, &ToolManager::procErrReady);
+	this->doCreate(name, true, args);
+}
 
-#if !defined(QT_NO_DEBUG) && defined(Q_OS_WIN)
-	QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-	auto path = env.value(QStringLiteral("PATH"));
-	path.append(QLatin1Char(';') + QDir(QStringLiteral("../ClipboardSyncCore/debug/")).absolutePath());
-	env.insert(QStringLiteral("PATH"), path);
-	proc->setEnvironment(env.toStringList());
-#endif
+void ToolManager::createClient(const QString &name, const QString address, const QString &authPass, const QString &certPath, const QString &certFormat)
+{
+	QStringList args;
+	if(!authPass.isEmpty())
+		args.append({QStringLiteral("--authentication"), authPass});
+	if(!certPath.isEmpty())
+		args.append({QStringLiteral("--secure"), certPath, QStringLiteral("--format"), certFormat});
+	args.append(name);
+	args.append(address);
 
-	this->processes.insert(name, proc);
-	this->procInfos.insert(proc, true);
-	proc->start(QIODevice::ReadWrite);
+	this->doCreate(name, false, args);
 }
 
 void ToolManager::performAction(const QString &name, ToolManager::Actions action)
@@ -130,11 +121,12 @@ void ToolManager::removeClient(const QString &serverName, const QString &clientN
 void ToolManager::procStarted()
 {
 	auto proc = qobject_cast<QProcess*>(QObject::sender());
-	if(proc) {//TODO
+	if(proc) {
 		if(this->procInfos[proc].isServer) {
 			proc->write("showconnectinfo\nport\nnetinfo\nremoteinfo\n");
 			emit serverCreated(this->procName(proc));
-		}
+		} else
+			emit clientCreated(this->procName(proc));
 	}
 }
 
@@ -222,7 +214,7 @@ void ToolManager::procOutReady()
 					}
 				}
 			} else {
-
+				//TODO client out...
 			}
 		}
 	}
@@ -260,6 +252,36 @@ void ToolManager::procErrReady()
 			emit showMessage(mType, title, message);
 		}
 	}
+}
+
+void ToolManager::doCreate(const QString &name, bool isServer, const QStringList &arguments)
+{
+	auto proc = new QProcess(this);
+	proc->setProgram(isServer ? SERVER_TOOL : CLIENT_TOOL);
+	proc->setArguments(arguments);
+
+	connect(proc, &QProcess::started,
+			this, &ToolManager::procStarted);
+	connect(proc, &QProcess::errorOccurred,
+			this, &ToolManager::procErrorOccurred);
+	connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+			this, &ToolManager::procFinished);
+	connect(proc, &QProcess::readyReadStandardOutput,
+			this, &ToolManager::procOutReady);
+	connect(proc, &QProcess::readyReadStandardError,
+			this, &ToolManager::procErrReady);
+
+#if !defined(QT_NO_DEBUG) && defined(Q_OS_WIN)
+	QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+	auto path = env.value(QStringLiteral("PATH"));
+	path.append(QLatin1Char(';') + QDir(QStringLiteral("../ClipboardSyncCore/debug/")).absolutePath());
+	env.insert(QStringLiteral("PATH"), path);
+	proc->setEnvironment(env.toStringList());
+#endif
+
+	this->processes.insert(name, proc);
+	this->procInfos.insert(proc, isServer);
+	proc->start(QIODevice::ReadWrite);
 }
 
 QString ToolManager::generateTitle(QProcess *process, const QString &title) const

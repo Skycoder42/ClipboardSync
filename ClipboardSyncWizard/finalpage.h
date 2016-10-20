@@ -29,19 +29,22 @@ private slots:
 	void doCreate(int which);
 
 	void errorOccured(QtMsgType type, const QString &title, const QString &message);
-	void serverCreated();
+	void serverCreated(const QString &, const ToolManager::ServerInfo &info);
+	void clientCreated();
 
 private:
 	Ui::FinalPage *ui;
 	ToolManager *manager;
 
 	QProgressDialog *createIndicator;
+	int rServerPort;
 	bool sComp;
 	bool cComp;
 	bool complete;
 	QString error;
 
 	void createServer();
+	void createClient(quint16 port = 0);
 };
 
 #endif // FINALPAGE_H

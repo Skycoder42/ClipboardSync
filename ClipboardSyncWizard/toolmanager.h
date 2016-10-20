@@ -25,6 +25,9 @@ public:
 	};
 	Q_ENUM(Actions)
 
+	static const QString CertAny;
+	static const QString CertSystem;
+
 	struct ServerInfo {
 		quint16 port;
 		QStringList localAddresses;
@@ -46,12 +49,18 @@ public slots:
 					  const QString &certPath,
 					  const QString &certPass,
 					  bool localOnly);
+	void createClient(const QString &name,
+					  const QString address,
+					  const QString &authPass,
+					  const QString &certPath,
+					  const QString &certFormat);
 
 	void performAction(const QString &name, Actions action);
 	void removeClient(const QString &serverName, const QString &clientName);
 
 signals:
 	void serverCreated(const QString &name);
+	void clientCreated(const QString &name);
 	void instanceClosed(const QString &name);
 	void serverStatusLoaded(const QString &name, ServerInfo serverInfo);
 
@@ -87,6 +96,8 @@ private:
 
 	QHash<QString, QProcess*> processes;
 	QHash<QProcess*, InstanceInfo> procInfos;
+
+	void doCreate(const QString &name, bool isServer, const QStringList &arguments);
 
 	QString generateTitle(QProcess *process, const QString &title) const;
 	QString procName(QProcess *process) const;

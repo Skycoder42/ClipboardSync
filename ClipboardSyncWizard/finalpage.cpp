@@ -7,6 +7,7 @@ FinalPage::FinalPage(ToolManager *manager, QWidget *parent) :
 	ui(new Ui::FinalPage),
 	manager(manager),
 	createIndicator(DialogMaster::createProgress(this, tr("Creating Instances. Please wait…"), 0, 0, false)),
+	rServerPort(0),
 	sComp(false),
 	cComp(false),
 	complete(false),
@@ -19,11 +20,6 @@ FinalPage::FinalPage(ToolManager *manager, QWidget *parent) :
 			this, &FinalPage::reloadText);
 
 	this->setButtonText(QWizard::CustomButton1, tr("Create Instances"));
-
-	connect(this->manager, &ToolManager::showMessage,
-			this, &FinalPage::errorOccured);
-	connect(this->manager, &ToolManager::serverStatusLoaded,
-			this, &FinalPage::serverCreated);
 }
 
 FinalPage::~FinalPage()
@@ -35,6 +31,13 @@ void FinalPage::initializePage()
 {
 	connect(this->wizard(), &QWizard::customButtonClicked,
 			this, &FinalPage::doCreate);
+	connect(this->manager, &ToolManager::showMessage,
+			this, &FinalPage::errorOccured);
+	connect(this->manager, &ToolManager::serverStatusLoaded,
+			this, &FinalPage::serverCreated);
+	connect(this->manager, &ToolManager::clientCreated,//TODO after connect
+			this, &FinalPage::clientCreated);
+
 	this->wizard()->setOption(QWizard::HaveCustomButton1, true);
 	this->reloadText();
 }
@@ -43,7 +46,15 @@ void FinalPage::cleanupPage()
 {
 	disconnect(this->wizard(), &QWizard::customButtonClicked,
 			   this, &FinalPage::doCreate);
+	disconnect(this->manager, &ToolManager::showMessage,
+			   this, &FinalPage::errorOccured);
+	disconnect(this->manager, &ToolManager::serverStatusLoaded,
+			   this, &FinalPage::serverCreated);
+	disconnect(this->manager, &ToolManager::clientCreated,//TODO after connect
+			   this, &FinalPage::clientCreated);
+
 	this->ui->textBrowser->clear();
+	this->rServerPort = 0;
 	this->sComp = false;
 	this->cComp = false;
 	this->complete = false;
@@ -75,7 +86,7 @@ void FinalPage::reloadText()
 
 		detailsText += tr("&nbsp;– Name: <i>%1</i><br/>").arg(this->field(MainWizard::ServerNameField).toString());
 
-		auto port = this->field(MainWizard::ServerPortField).toInt();
+		auto port = this->rServerPort == 0 ? this->field(MainWizard::ServerPortField).toInt() : this->rServerPort;
 		detailsText += tr("&nbsp;– Port: <i>%1</i><br/>").arg(port == 0 ? tr("Automatic Port") : QString::number(port));
 
 		auto pass = this->field(MainWizard::ServerAuthPassField).toString();
@@ -134,6 +145,8 @@ void FinalPage::reloadText()
 		case MainWizard::SecureSystem:
 			detailsText += tr("&nbsp;– Secure Connection - Accept system authorities");
 			break;
+		default:
+			Q_UNREACHABLE();
 		}
 
 		if(this->cComp)
@@ -162,13 +175,15 @@ void FinalPage::doCreate(int which)
 		this->createIndicator->open();
 		if(this->field(MainWizard::ModeField) == MainWizard::ServerMode)
 			this->createServer();
+		else
+			this->createClient();
 	}
 }
 
 void FinalPage::errorOccured(QtMsgType type, const QString &title, const QString &message)
 {
 	if(type == QtMsgType::QtCriticalMsg) {
-		this->createIndicator->close();
+		this->createIndicator->cancel();
 		this->wizard()->setOption(QWizard::DisabledBackButtonOnLastPage, false);
 		this->wizard()->button(QWizard::CancelButton)->setEnabled(true);
 		this->wizard()->button(QWizard::CustomButton1)->setEnabled(true);
@@ -180,10 +195,23 @@ void FinalPage::errorOccured(QtMsgType type, const QString &title, const QString
 	}
 }
 
-void FinalPage::serverCreated()
+void FinalPage::serverCreated(const QString &, const ToolManager::ServerInfo &info)
 {
-	this->createIndicator->close();
+	this->rServerPort = info.port;
 	this->sComp = true;
+	if(this->field(MainWizard::ClientNameField).toString().isEmpty()) {
+		this->createIndicator->cancel();
+		this->complete = true;
+		emit completeChanged();
+	} else
+		this->createClient(info.port);
+	this->reloadText();
+}
+
+void FinalPage::clientCreated()
+{
+	this->createIndicator->cancel();
+	this->cComp = true;
 	this->complete = true;
 	this->reloadText();
 	emit completeChanged();
@@ -197,4 +225,36 @@ void FinalPage::createServer()
 								this->field(MainWizard::ServerCertPathField).toString(),
 								this->field(MainWizard::ServerCertPassField).toString(),
 								this->field(MainWizard::ServerLocalField).toBool());
+}
+
+void FinalPage::createClient(quint16 port)
+{
+	QString path;
+	switch(this->field(MainWizard::ClientSecurityField).toInt()) {
+	case MainWizard::NoSecurity:
+		break;
+	case MainWizard::SecureAll:
+		path = ToolManager::CertAny;
+		break;
+	case MainWizard::SecureCustom:
+		path = this->field(MainWizard::ClientCertPathField).toString();
+		break;
+	case MainWizard::SecureSystem:
+		path = ToolManager::CertSystem;
+		break;
+	default:
+		Q_UNREACHABLE();
+	}
+
+	QString address;
+	if(port == 0)
+		address = this->field(MainWizard::ClientUrlField).toString();
+	else
+		address = QStringLiteral("127.0.0.1:%1").arg(port);
+
+	this->manager->createClient(this->field(MainWizard::ClientNameField).toString(),
+								address,
+								this->field(MainWizard::ClientAuthPassField).toString(),
+								path,
+								this->field(MainWizard::ClientCertFormatField).toString());
 }
