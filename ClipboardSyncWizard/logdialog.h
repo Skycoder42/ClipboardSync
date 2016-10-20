@@ -22,6 +22,9 @@ public slots:
 signals:
 	void reloadTriggered();
 
+private slots:
+	void on_saveButton_clicked();
+
 private:
 	Ui::LogDialog *ui;
 };

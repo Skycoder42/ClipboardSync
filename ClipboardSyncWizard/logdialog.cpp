@@ -3,7 +3,9 @@
 #include <QSyntaxHighlighter>
 #include <QBrush>
 #include <QColor>
-#include <QWindow>
+#include <QTextDocumentWriter>
+#include <QDesktopServices>
+#include <dialogmaster.h>
 
 class KeyHighlighter : public QSyntaxHighlighter
 {
@@ -89,5 +91,43 @@ void KeyHighlighter::highlightBlock(const QString &text)
 			this->setFormat(index, len, this->fatalFormat);
 
 		match = regex.match(text, index + len);
+	}
+}
+
+void LogDialog::on_saveButton_clicked()
+{
+	QString selected;
+
+	QStringList filters = {
+		tr("OpenDocument Format (*.odf)"),
+		tr("Plain Text (*.txt)"),
+		tr("HyperText Markup Language (*.html *.htm)")
+	};
+
+	auto name = DialogMaster::getSaveFileName(this,
+											  tr("Save Debug Log"),
+											  QString(),
+											  filters.join(QStringLiteral(";;")),
+											  &selected);
+	if(!name.isEmpty()) {
+		auto formatIndex = filters.indexOf(selected);
+		QByteArray format;
+		switch (formatIndex) {
+		case 0:
+			format = "ODF";
+			break;
+		case 1:
+		default:
+			format = "plaintext";
+			break;
+		case 2:
+			format = "HTML";
+			break;
+		}
+		QTextDocumentWriter writer(name, format);
+		if(writer.write(this->ui->textBrowser->document()))
+			QDesktopServices::openUrl(QUrl::fromLocalFile(name));
+		else
+			DialogMaster::warning(this, tr("Failed to save document to file!"));
 	}
 }
