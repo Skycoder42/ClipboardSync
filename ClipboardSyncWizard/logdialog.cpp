@@ -42,6 +42,8 @@ LogDialog::~LogDialog()
 void LogDialog::reloadLog(const QByteArray &log)
 {
 	this->ui->textBrowser->setPlainText(QString::fromUtf8(log));
+	this->ui->textBrowser->moveCursor(QTextCursor::End);
+	this->ui->textBrowser->ensureCursorVisible();
 }
 
 void LogDialog::popup()

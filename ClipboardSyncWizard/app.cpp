@@ -30,6 +30,7 @@ App::App(int &argc, char **argv) :
 int App::exec()
 {
 	this->trayIco->show();
+	this->showCreate();
 
 	return QApplication::exec();
 }

@@ -102,7 +102,8 @@ bool SyncServer::createServer(int port, const QString &password, bool local)
 				 << "in"
 				 << (this->server->secureMode() == QWebSocketServer::SecureMode ? "secure mode (wss)" : "non secure mode (ws)")
 				 << (local ? "(local only)" : "");
-	}
+	} else
+		qCritical() << "Failed to create server. Port probably already in use!";
 	return ok;
 }
 

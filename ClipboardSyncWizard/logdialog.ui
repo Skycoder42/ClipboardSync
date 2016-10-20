@@ -24,6 +24,9 @@
        <family>Courier New</family>
       </font>
      </property>
+     <property name="cursor" stdset="0">
+      <cursorShape>IBeamCursor</cursorShape>
+     </property>
      <property name="tabChangesFocus">
       <bool>true</bool>
      </property>

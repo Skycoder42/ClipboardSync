@@ -25,10 +25,10 @@ public:
 	int nextId() const override;
 
 private slots:
-	void reloadText(bool showPasswords);
+	void reloadText();
 	void doCreate(int which);
 
-	void errorOccured(QtMsgType type);
+	void errorOccured(QtMsgType type, const QString &title, const QString &message);
 	void serverCreated();
 
 private:
@@ -36,7 +36,10 @@ private:
 	ToolManager *manager;
 
 	QProgressDialog *createIndicator;
+	bool sComp;
+	bool cComp;
 	bool complete;
+	QString error;
 
 	void createServer();
 };
