@@ -20,6 +20,7 @@ public:
 
 public slots:
 	void addServer(const QString &name);
+	void addClient(const QString &name);
 	void removeInstance(const QString &name);
 
 	void setCreateEnabled(bool createEnabled);

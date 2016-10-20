@@ -17,6 +17,7 @@ public slots:
 	void closeConnection();
 
 	void sendData(const QByteArray &data);
+	void setShowInfo(bool show);
 
 signals:
 	void dataReceived(const QByteArray &data);
@@ -30,6 +31,7 @@ private slots:
 private:
 	QWebSocket *socket;
 	bool isSecure;
+	bool showInfo;
 };
 
 #endif // SYNCCLIENT_H

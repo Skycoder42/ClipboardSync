@@ -15,7 +15,7 @@ App::App(int &argc, char **argv) :
 	QCoreApplication::setOrganizationDomain("com.Skycoder42");
 }
 
-int App::exec()
+int App::exec()//TODO single instance PER SERVER
 {
 	QCommandLineParser parser;
 	parser.addHelpOption();
@@ -86,6 +86,10 @@ void App::commandReceived(const QByteArray &command)
 		this->clipController->syncNow();
 	else if(command == "clear")
 		this->clipController->clear();
+	else if(command == "showconnectinfo")
+		this->client->setShowInfo(true);
+	else if(command == "hideconnectinfo")
+		this->client->setShowInfo(false);
 	else
 		qWarning() << "Unknown command received:" << command;
 }

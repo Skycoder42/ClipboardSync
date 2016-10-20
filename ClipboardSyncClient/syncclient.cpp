@@ -7,7 +7,8 @@
 SyncClient::SyncClient(const QString &clientName, QObject *parent) :
 	QObject(parent),
 	socket(new QWebSocket(clientName, QWebSocketProtocol::VersionLatest, this)),
-	isSecure(false)
+	isSecure(false),
+	showInfo(false)
 {
 	connect(this->socket, &QWebSocket::connected,
 			this, &SyncClient::connected);
@@ -96,9 +97,19 @@ void SyncClient::sendData(const QByteArray &data)
 	this->socket->sendBinaryMessage(data);
 }
 
+void SyncClient::setShowInfo(bool show)
+{
+	this->showInfo = show;
+}
+
 void SyncClient::connected()
 {
 	qDebug() << "Connected to server!";
+	if(this->showInfo) {
+		qInfo() << "info:"
+				<< qUtf8Printable(tr("Connected to server!;Connected to the server at"))
+				<< qUtf8Printable(this->socket->requestUrl().toString());
+	}
 }
 
 void SyncClient::error(QAbstractSocket::SocketError error)

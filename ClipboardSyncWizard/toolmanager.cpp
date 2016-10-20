@@ -125,8 +125,10 @@ void ToolManager::procStarted()
 		if(this->procInfos[proc].isServer) {
 			proc->write("showconnectinfo\nport\nnetinfo\nremoteinfo\n");
 			emit serverCreated(this->procName(proc));
-		} else
+		} else {
+			proc->write("showconnectinfo\n");
 			emit clientCreated(this->procName(proc));
+		}
 	}
 }
 
