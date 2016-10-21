@@ -48,7 +48,9 @@ void MenuManager::addServer(const QString &name)
 		emit performAction(name, ToolManager::Log);
 	});
 	menu->addSeparator();
-	menu->addAction(tr("&Remember for next time"))->setCheckable(true);
+	menu->addAction(tr("&Remember for next time"), this, [=](){
+		emit performAction(name, ToolManager::ToggleAutoSave);
+	})->setCheckable(true);
 	menu->addAction(tr("E&xport Configuration"), this, [=](){
 		emit performAction(name, ToolManager::Save);
 	});
@@ -80,7 +82,9 @@ void MenuManager::addClient(const QString &name)
 		emit performAction(name, ToolManager::Log);
 	});
 	menu->addSeparator();
-	menu->addAction(tr("&Remember for next time"))->setCheckable(true);
+	menu->addAction(tr("&Remember for next time"), this, [=](){
+		emit performAction(name, ToolManager::ToggleAutoSave);
+	})->setCheckable(true);
 	menu->addAction(tr("E&xport Configuration"), this, [=](){
 		emit performAction(name, ToolManager::Save);
 	});

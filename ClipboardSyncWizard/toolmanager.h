@@ -20,6 +20,7 @@ public:
 		Clear = 0x03,
 		Log = 0x04,
 		Save = 0x05,
+		ToggleAutoSave = 0x06,
 
 		//Server only
 		Status = 0x11,
@@ -84,6 +85,7 @@ private:
 	struct InstanceInfo {
 		bool isServer;
 		QJsonObject config;
+		bool autoStart;
 
 		QByteArray outBuffer;
 		QByteArray errBuffer;
@@ -102,6 +104,8 @@ private:
 
 	QHash<QString, QProcess*> processes;
 	QHash<QProcess*, InstanceInfo> procInfos;
+
+	void rewriteAutoSave();
 
 	void doCreate(const QString &name, bool isServer, const QStringList &arguments, const QJsonObject &config);
 	void doSave(const QString &name);

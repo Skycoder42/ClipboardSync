@@ -3,6 +3,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QStandardPaths>
 
 #ifdef QT_NO_DEBUG
 # define SERVER_TOOL QStringLiteral("./ClipboardSyncServer")
@@ -135,6 +136,10 @@ void ToolManager::performAction(const QString &name, ToolManager::Actions action
 			break;
 		case Save:
 			this->doSave(name);
+			break;
+		case ToggleAutoSave:
+			this->procInfos[proc].autoStart = !this->procInfos[proc].autoStart;
+			this->rewriteAutoSave();
 			break;
 		case Status:
 			this->procInfos[proc].serverAwaiter.doesAwait = true;
@@ -301,6 +306,34 @@ void ToolManager::procErrReady()
 	}
 }
 
+void ToolManager::rewriteAutoSave()
+{
+	QJsonArray servers;
+	QJsonArray clients;
+
+	foreach(auto procInfo, this->procInfos) {
+		if(procInfo.autoStart) {
+			if(procInfo.isServer)
+				servers.append(procInfo.config);
+			else
+				clients.append(procInfo.config);
+		}
+	}
+
+	QJsonObject obj;
+	obj[QStringLiteral("servers")] = servers;
+	obj[QStringLiteral("clients")] = clients;
+
+	QDir appData(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+	appData.mkpath(QStringLiteral("."));
+	QFile autoConfig(appData.absoluteFilePath(QStringLiteral("startup.json")));
+	if(autoConfig.open(QIODevice::WriteOnly)) {
+		QJsonDocument doc(obj);
+		autoConfig.write(doc.toJson(QJsonDocument::Indented));
+		autoConfig.close();
+	}
+}
+
 void ToolManager::doCreate(const QString &name, bool isServer, const QStringList &arguments, const QJsonObject &config)
 {
 	auto proc = new QProcess(this);
@@ -341,7 +374,7 @@ void ToolManager::doSave(const QString &name)
 													  tr("Export Server Configuration") :
 													  tr("Export Client Configuration"),
 												  QString(),
-												  tr("Clipboard-Sync Configuration Files (*.cbsc);;All Files (*)"));
+												  tr("Clipboard-Sync Configuration Files (*.cscfg);;All Files (*)"));
 		if(!file.isNull()) {
 			QFile outFile(file);
 			if(outFile.open(QIODevice::WriteOnly)) {
@@ -397,6 +430,7 @@ ToolManager::ServerInfo::ServerInfo() :
 ToolManager::InstanceInfo::InstanceInfo(bool isServer, const QJsonObject &config) :
 	isServer(isServer),
 	config(config),
+	autoStart(false),
 	outBuffer(),
 	errBuffer(),
 	errorLog(),
