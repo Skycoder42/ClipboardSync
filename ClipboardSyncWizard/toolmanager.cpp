@@ -55,30 +55,65 @@ QString ToolManager::createTitle(const QString &name, const QString &title) cons
 void ToolManager::createServer(const QString &name, const int port, const QString &authPass, const QString &certPath, const QString &certPass, bool localOnly)
 {
 	QStringList args;
+	QJsonObject config;
+	config[QStringLiteral("type")] = QStringLiteral("server");
+
+	config[QStringLiteral("port")] = port;
 	if(port != 0)
 		args.append({QStringLiteral("--port"), QString::number(port)});
-	if(!authPass.isEmpty())
+
+	if(!authPass.isEmpty()) {
 		args.append({QStringLiteral("--authentication"), authPass});
-	if(!certPath.isEmpty())
+		config[QStringLiteral("authentication")] = authPass;
+	} else
+		config[QStringLiteral("authentication")] = QJsonValue::Null;
+
+	if(!certPath.isEmpty()) {
 		args.append({QStringLiteral("--secure"), certPath, QStringLiteral("--keypassphrase"), certPass});
+		QJsonObject sec;
+		sec[QStringLiteral("path")] = certPath;
+		sec[QStringLiteral("passphrase")] = certPass;
+		config[QStringLiteral("secure")] = sec;
+	} else
+		config[QStringLiteral("secure")] = QJsonValue::Null;
+
 	if(localOnly)
 		args.append(QStringLiteral("--localonly"));
-	args.append(name);
+	config[QStringLiteral("local")] = localOnly;
 
-	this->doCreate(name, true, args);
+	args.append(name);
+	config[QStringLiteral("name")] = name;
+
+	this->doCreate(name, true, args, config);
 }
 
 void ToolManager::createClient(const QString &name, const QString address, const QString &authPass, const QString &certPath, const QString &certFormat)
 {
 	QStringList args;
-	if(!authPass.isEmpty())
-		args.append({QStringLiteral("--authentication"), authPass});
-	if(!certPath.isEmpty())
-		args.append({QStringLiteral("--secure"), certPath, QStringLiteral("--format"), certFormat});
-	args.append(name);
-	args.append(address);
+	QJsonObject config;
+	config[QStringLiteral("type")] = QStringLiteral("client");
 
-	this->doCreate(name, false, args);
+	if(!authPass.isEmpty()) {
+		args.append({QStringLiteral("--authentication"), authPass});
+		config[QStringLiteral("authentication")] = authPass;
+	} else
+		config[QStringLiteral("authentication")] = QJsonValue::Null;
+
+	if(!certPath.isEmpty()) {
+		args.append({QStringLiteral("--secure"), certPath, QStringLiteral("--format"), certFormat});
+		QJsonObject sec;
+		sec[QStringLiteral("path")] = certPath;
+		sec[QStringLiteral("format")] = certFormat;
+		config[QStringLiteral("secure")] = sec;
+	} else
+		config[QStringLiteral("secure")] = QJsonValue::Null;
+
+	args.append(name);
+	args.append(address);	
+	config[QStringLiteral("name")] = name;
+	config[QStringLiteral("address")] = address;
+
+	this->doCreate(name, false, args, config);
 }
 
 void ToolManager::performAction(const QString &name, ToolManager::Actions action)
@@ -97,6 +132,9 @@ void ToolManager::performAction(const QString &name, ToolManager::Actions action
 			break;
 		case Log:
 			emit showLog(name, this->procInfos[proc].errorLog);
+			break;
+		case Save:
+			this->doSave(name);
 			break;
 		case Status:
 			this->procInfos[proc].serverAwaiter.doesAwait = true;
@@ -208,9 +246,10 @@ void ToolManager::procOutReady()
 				if(this->procInfos[proc].serverAwaiter.doesAwait) {
 					auto &awaiter = this->procInfos[proc].serverAwaiter;
 
-					if(command == "port")
+					if(command == "port") {
 						awaiter.port = param.toUShort();
-					else if(command == "netinfo")
+						this->procInfos[proc].config[QStringLiteral("port")] = awaiter.port;
+					} else if(command == "netinfo")
 						awaiter.localAddresses = QString::fromUtf8(param).split(QLatin1Char(';'), QString::SkipEmptyParts);
 					else if(command == "remoteinfo")
 						awaiter.remoteAddress = QString::fromUtf8(param);
@@ -262,7 +301,7 @@ void ToolManager::procErrReady()
 	}
 }
 
-void ToolManager::doCreate(const QString &name, bool isServer, const QStringList &arguments)
+void ToolManager::doCreate(const QString &name, bool isServer, const QStringList &arguments, const QJsonObject &config)
 {
 	auto proc = new QProcess(this);
 	proc->setProgram(isServer ? SERVER_TOOL : CLIENT_TOOL);
@@ -288,8 +327,31 @@ void ToolManager::doCreate(const QString &name, bool isServer, const QStringList
 #endif
 
 	this->processes.insert(name, proc);
-	this->procInfos.insert(proc, isServer);
+	this->procInfos.insert(proc, {isServer, config});
 	proc->start(QIODevice::ReadWrite);
+}
+
+void ToolManager::doSave(const QString &name)
+{
+	auto proc = this->processes.value(name, nullptr);
+	if(proc) {
+		auto info = this->procInfos[proc];
+		auto file = DialogMaster::getSaveFileName(nullptr,
+												  info.isServer ?
+													  tr("Export Server Configuration") :
+													  tr("Export Client Configuration"),
+												  QString(),
+												  tr("Clipboard-Sync Configuration Files (*.cbsc);;All Files (*)"));
+		if(!file.isNull()) {
+			QFile outFile(file);
+			if(outFile.open(QIODevice::WriteOnly)) {
+				QJsonDocument doc(info.config);
+				outFile.write(doc.toJson(QJsonDocument::Indented));
+				outFile.close();
+			} else
+				DialogMaster::warning(nullptr, tr("Failed to save configuration to file!"));
+		}
+	}
 }
 
 QString ToolManager::generateTitle(QProcess *process, const QString &title) const
@@ -332,8 +394,9 @@ ToolManager::ServerInfo::ServerInfo() :
 	remoteAddress()
 {}
 
-ToolManager::InstanceInfo::InstanceInfo(bool isServer) :
+ToolManager::InstanceInfo::InstanceInfo(bool isServer, const QJsonObject &config) :
 	isServer(isServer),
+	config(config),
 	outBuffer(),
 	errBuffer(),
 	errorLog(),

@@ -6,6 +6,7 @@
 #include <QHostAddress>
 #include <QProcess>
 #include <QStandardItemModel>
+#include <QJsonObject>
 
 class ToolManager : public QObject
 {
@@ -18,6 +19,7 @@ public:
 		Sync = 0x02,
 		Clear = 0x03,
 		Log = 0x04,
+		Save = 0x05,
 
 		//Server only
 		Status = 0x11,
@@ -81,6 +83,8 @@ private slots:
 private:
 	struct InstanceInfo {
 		bool isServer;
+		QJsonObject config;
+
 		QByteArray outBuffer;
 		QByteArray errBuffer;
 		QByteArray errorLog;
@@ -93,13 +97,14 @@ private:
 			ServerAwaiter();
 		} serverAwaiter;
 
-		InstanceInfo(bool isServer = false);
+		InstanceInfo(bool isServer = false, const QJsonObject &config = QJsonObject());
 	};
 
 	QHash<QString, QProcess*> processes;
 	QHash<QProcess*, InstanceInfo> procInfos;
 
-	void doCreate(const QString &name, bool isServer, const QStringList &arguments);
+	void doCreate(const QString &name, bool isServer, const QStringList &arguments, const QJsonObject &config);
+	void doSave(const QString &name);
 
 	QString generateTitle(QProcess *process, const QString &title) const;
 	QString procName(QProcess *process) const;
