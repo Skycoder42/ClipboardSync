@@ -30,7 +30,8 @@ App::App(int &argc, char **argv) :
 int App::exec()
 {
 	this->trayIco->show();
-	this->showCreate();
+	if(!this->toolManager->initStartup())
+		this->showCreate();
 
 	return QApplication::exec();
 }
@@ -143,6 +144,8 @@ void App::init()
 			this, &App::showMessage);
 
 	this->menuManager = new MenuManager(this->trayIco, this);
+	connect(this->toolManager, &ToolManager::allowCreate,
+			this->menuManager, &MenuManager::setCreateEnabled);
 	connect(this->toolManager, &ToolManager::serverCreated,
 			this->menuManager, &MenuManager::addServer);
 	connect(this->toolManager, &ToolManager::clientCreated,

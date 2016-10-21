@@ -18,6 +18,8 @@ MenuManager::MenuManager(QSystemTrayIcon *trayIco, QObject *parent) :
 	this->menu->addSection(tr("Servers"));
 	this->postServers = this->menu->addSection(tr("Clients"));
 	this->postClients = this->menu->addSeparator();
+	this->menu->addAction(tr("E&xport Multiple"))->setEnabled(false);
+	this->menu->addSeparator();
 	this->menu->addAction(tr("Start on &boot"))->setEnabled(false);//TODO ->setCheckable(true);
 	this->menu->addAction(tr("&Quit"), qApp, &App::quit);
 }
@@ -27,7 +29,7 @@ bool MenuManager::isCreateEnabled() const
 	return this->createEnabled;
 }
 
-void MenuManager::addServer(const QString &name)
+void MenuManager::addServer(const QString &name, bool fromStartup)
 {
 	auto menu = new QMenu(name, this->menu.data());
 
@@ -48,9 +50,11 @@ void MenuManager::addServer(const QString &name)
 		emit performAction(name, ToolManager::Log);
 	});
 	menu->addSeparator();
-	menu->addAction(tr("&Remember for next time"), this, [=](){
+	auto remAction = menu->addAction(tr("C&reate on startup"), this, [=](){
 		emit performAction(name, ToolManager::ToggleAutoSave);
-	})->setCheckable(true);
+	});
+	remAction->setCheckable(true);
+	remAction->setChecked(fromStartup);
 	menu->addAction(tr("E&xport Configuration"), this, [=](){
 		emit performAction(name, ToolManager::Save);
 	});
@@ -64,7 +68,7 @@ void MenuManager::addServer(const QString &name)
 	this->reloadTooltip();
 }
 
-void MenuManager::addClient(const QString &name)
+void MenuManager::addClient(const QString &name, bool fromStartup)
 {
 	auto menu = new QMenu(name, this->menu.data());
 
@@ -82,9 +86,11 @@ void MenuManager::addClient(const QString &name)
 		emit performAction(name, ToolManager::Log);
 	});
 	menu->addSeparator();
-	menu->addAction(tr("&Remember for next time"), this, [=](){
+	auto remAction = menu->addAction(tr("C&reate on startup"), this, [=](){
 		emit performAction(name, ToolManager::ToggleAutoSave);
-	})->setCheckable(true);
+	});
+	remAction->setCheckable(true);
+	remAction->setChecked(fromStartup);
 	menu->addAction(tr("E&xport Configuration"), this, [=](){
 		emit performAction(name, ToolManager::Save);
 	});

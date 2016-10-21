@@ -20,8 +20,8 @@ public:
 	bool isCreateEnabled() const;
 
 public slots:
-	void addServer(const QString &name);
-	void addClient(const QString &name);
+	void addServer(const QString &name, bool fromStartup);
+	void addClient(const QString &name, bool fromStartup);
 	void removeInstance(const QString &name);
 
 	void setCreateEnabled(bool createEnabled);

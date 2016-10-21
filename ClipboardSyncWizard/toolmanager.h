@@ -7,6 +7,7 @@
 #include <QProcess>
 #include <QStandardItemModel>
 #include <QJsonObject>
+#include <QJsonArray>
 
 class ToolManager : public QObject
 {
@@ -45,26 +46,30 @@ public:
 	bool hasName(const QString &name) const;
 	QString createTitle(const QString &name, const QString &title) const;
 
+	bool initStartup();
+
 public slots:
 	void createServer(const QString &name,
 					  const int port,
 					  const QString &authPass,
 					  const QString &certPath,
 					  const QString &certPass,
-					  bool localOnly);
+					  bool localOnly,
+					  bool isAutoStart = false);
 	void createClient(const QString &name,
 					  const QString address,
 					  const QString &authPass,
 					  const QString &certPath,
-					  const QString &certFormat);
+					  const QString &certFormat,
+					  bool isAutoStart = false);
 
 	void performAction(const QString &name, Actions action);
 	void removeClient(const QString &serverName, const QString &clientName);
 	void setSyncInterval(const QString &clientName, int interval);
 
 signals:
-	void serverCreated(const QString &name);
-	void clientCreated(const QString &name);
+	void serverCreated(const QString &name, bool fromStartup);
+	void clientCreated(const QString &name, bool fromStartup);
 	void instanceClosed(const QString &name);
 	void serverStatusLoaded(const QString &name, ServerInfo serverInfo);
 	void clientStatusLoaded(const QString &name, const QString &serverName);
@@ -73,6 +78,8 @@ signals:
 	void showLog(const QString &name, const QByteArray &log);
 	void showPeers(const QString &name, QStandardItemModel *peerModel);
 
+	void allowCreate(bool allow);
+
 private slots:
 	void procStarted();
 	void procErrorOccurred(QProcess::ProcessError error);
@@ -80,6 +87,8 @@ private slots:
 
 	void procOutReady();
 	void procErrReady();
+
+	void initNext();
 
 private:
 	struct InstanceInfo {
@@ -99,15 +108,23 @@ private:
 			ServerAwaiter();
 		} serverAwaiter;
 
-		InstanceInfo(bool isServer = false, const QJsonObject &config = QJsonObject());
+		InstanceInfo(bool isServer = false, const QJsonObject &config = QJsonObject(), bool isAutoStart = false);
 	};
 
 	QHash<QString, QProcess*> processes;
 	QHash<QProcess*, InstanceInfo> procInfos;
 
-	void rewriteAutoSave();
+	QJsonArray svrBoot;
+	QJsonArray cltBoot;
 
-	void doCreate(const QString &name, bool isServer, const QStringList &arguments, const QJsonObject &config);
+	void rewriteAutoSave();
+	void createFromConfig(const QJsonObject &config, bool isAutoStart);
+
+	void doCreate(const QString &name,
+				  bool isServer,
+				  const QStringList &arguments,
+				  const QJsonObject &config,
+				  bool isAutoStart);
 	void doSave(const QString &name);
 
 	QString generateTitle(QProcess *process, const QString &title) const;

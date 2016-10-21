@@ -22,7 +22,9 @@ const QString ToolManager::CertSystem(QStringLiteral("default"));
 ToolManager::ToolManager(QObject *parent) :
 	QObject(parent),
 	processes(),
-	procInfos()
+	procInfos(),
+	svrBoot(),
+	cltBoot()
 {}
 
 ToolManager::~ToolManager()
@@ -53,7 +55,34 @@ QString ToolManager::createTitle(const QString &name, const QString &title) cons
 		return title;
 }
 
-void ToolManager::createServer(const QString &name, const int port, const QString &authPass, const QString &certPath, const QString &certPass, bool localOnly)
+bool ToolManager::initStartup()
+{
+	QDir appData(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+	appData.mkpath(QStringLiteral("."));
+	QFile autoConfig(appData.absoluteFilePath(QStringLiteral("startup.json")));
+	if(autoConfig.open(QIODevice::ReadOnly)) {
+		QJsonParseError error;
+		auto doc = QJsonDocument::fromJson(autoConfig.readAll(), &error);
+		autoConfig.close();
+		if(error.error == QJsonParseError::NoError) {
+			auto obj = doc.object();
+			auto servers = obj[QStringLiteral("servers")].toArray();
+			auto clients = obj[QStringLiteral("clients")].toArray();
+			if(!servers.isEmpty() || !clients.isEmpty()) {
+				emit allowCreate(false);
+				this->svrBoot = servers;
+				this->cltBoot = clients;
+				this->initNext();
+				return true;
+			}
+		} else
+			emit showMessage(QtMsgType::QtWarningMsg, tr("Startup file corrupted!"), tr("The startup file is corrupted! Unable to start servers and clients automatically!"));
+	}
+
+	return false;
+}
+
+void ToolManager::createServer(const QString &name, const int port, const QString &authPass, const QString &certPath, const QString &certPass, bool localOnly, bool isAutoStart)
 {
 	QStringList args;
 	QJsonObject config;
@@ -85,10 +114,10 @@ void ToolManager::createServer(const QString &name, const int port, const QStrin
 	args.append(name);
 	config[QStringLiteral("name")] = name;
 
-	this->doCreate(name, true, args, config);
+	this->doCreate(name, true, args, config, isAutoStart);
 }
 
-void ToolManager::createClient(const QString &name, const QString address, const QString &authPass, const QString &certPath, const QString &certFormat)
+void ToolManager::createClient(const QString &name, const QString address, const QString &authPass, const QString &certPath, const QString &certFormat, bool isAutoStart)
 {
 	QStringList args;
 	QJsonObject config;
@@ -114,7 +143,7 @@ void ToolManager::createClient(const QString &name, const QString address, const
 	config[QStringLiteral("name")] = name;
 	config[QStringLiteral("address")] = address;
 
-	this->doCreate(name, false, args, config);
+	this->doCreate(name, false, args, config, isAutoStart);
 }
 
 void ToolManager::performAction(const QString &name, ToolManager::Actions action)
@@ -172,11 +201,15 @@ void ToolManager::procStarted()
 {
 	auto proc = qobject_cast<QProcess*>(QObject::sender());
 	if(proc) {
-		if(this->procInfos[proc].isServer) {
+		const auto &info = this->procInfos[proc];
+		if(info.isServer) {
 			proc->write("showconnectinfo\nport\nnetinfo\nremoteinfo\n");
-			emit serverCreated(this->procName(proc));
+			emit serverCreated(this->procName(proc), info.autoStart);
 		} else
-			emit clientCreated(this->procName(proc));
+			emit clientCreated(this->procName(proc), info.autoStart);
+
+		if(info.autoStart)
+			this->initNext();
 	}
 }
 
@@ -306,6 +339,18 @@ void ToolManager::procErrReady()
 	}
 }
 
+void ToolManager::initNext()
+{
+	if(!this->svrBoot.isEmpty()) {
+		auto server = this->svrBoot.takeAt(0).toObject();
+		this->createFromConfig(server, true);
+	} else if(!this->cltBoot.isEmpty()) {
+		auto client = this->cltBoot.takeAt(0).toObject();
+		this->createFromConfig(client, true);
+	} else
+		emit allowCreate(true);
+}
+
 void ToolManager::rewriteAutoSave()
 {
 	QJsonArray servers;
@@ -334,7 +379,33 @@ void ToolManager::rewriteAutoSave()
 	}
 }
 
-void ToolManager::doCreate(const QString &name, bool isServer, const QStringList &arguments, const QJsonObject &config)
+void ToolManager::createFromConfig(const QJsonObject &config, bool isAutoStart)
+{
+	if(config[QStringLiteral("type")] == QStringLiteral("server")) {
+		auto auth = config[QStringLiteral("authentication")];
+		auto sec = config[QStringLiteral("secure")];
+
+		this->createServer(config[QStringLiteral("name")].toString(),
+						   config[QStringLiteral("port")].toInt(),
+						   auth.isNull() ? QString() : auth.toString(),
+						   sec.isNull() ? QString() : sec.toObject()[QStringLiteral("path")].toString(),
+						   sec.isNull() ? QString() : sec.toObject()[QStringLiteral("passphrase")].toString(),
+						   config[QStringLiteral("local")].toBool(),
+						   isAutoStart);
+	} else if(config[QStringLiteral("type")] == QStringLiteral("client")) {
+		auto auth = config[QStringLiteral("authentication")];
+		auto sec = config[QStringLiteral("secure")];
+
+		this->createClient(config[QStringLiteral("name")].toString(),
+						   config[QStringLiteral("address")].toString(),
+						   auth.isNull() ? QString() : auth.toString(),
+						   sec.isNull() ? QString() : sec.toObject()[QStringLiteral("path")].toString(),
+						   sec.isNull() ? QString() : sec.toObject()[QStringLiteral("format")].toString(),
+						   isAutoStart);
+	}
+}
+
+void ToolManager::doCreate(const QString &name, bool isServer, const QStringList &arguments, const QJsonObject &config, bool isAutoStart)
 {
 	auto proc = new QProcess(this);
 	proc->setProgram(isServer ? SERVER_TOOL : CLIENT_TOOL);
@@ -360,7 +431,7 @@ void ToolManager::doCreate(const QString &name, bool isServer, const QStringList
 #endif
 
 	this->processes.insert(name, proc);
-	this->procInfos.insert(proc, {isServer, config});
+	this->procInfos.insert(proc, {isServer, config, isAutoStart});
 	proc->start(QIODevice::ReadWrite);
 }
 
@@ -427,10 +498,10 @@ ToolManager::ServerInfo::ServerInfo() :
 	remoteAddress()
 {}
 
-ToolManager::InstanceInfo::InstanceInfo(bool isServer, const QJsonObject &config) :
+ToolManager::InstanceInfo::InstanceInfo(bool isServer, const QJsonObject &config, bool isAutoStart) :
 	isServer(isServer),
 	config(config),
-	autoStart(false),
+	autoStart(isAutoStart),
 	outBuffer(),
 	errBuffer(),
 	errorLog(),
