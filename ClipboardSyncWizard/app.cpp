@@ -146,12 +146,17 @@ void App::init()
 	this->menuManager = new MenuManager(this->trayIco, this);
 	connect(this->toolManager, &ToolManager::allowCreate,
 			this->menuManager, &MenuManager::setCreateEnabled);
+	connect(this->toolManager, &ToolManager::importDone,
+			this->menuManager, &MenuManager::completeImport);
 	connect(this->toolManager, &ToolManager::serverCreated,
 			this->menuManager, &MenuManager::addServer);
 	connect(this->toolManager, &ToolManager::clientCreated,
 			this->menuManager, &MenuManager::addClient);
 	connect(this->toolManager, &ToolManager::instanceClosed,
 			this->menuManager, &MenuManager::removeInstance);
+
+	connect(this->menuManager, &MenuManager::doImport,
+			this->toolManager, &ToolManager::importInstance);
 	connect(this->menuManager, &MenuManager::performAction,
 			this->toolManager, &ToolManager::performAction);
 	connect(this->menuManager, &MenuManager::setSyncInterval,

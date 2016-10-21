@@ -24,7 +24,8 @@ ToolManager::ToolManager(QObject *parent) :
 	processes(),
 	procInfos(),
 	svrBoot(),
-	cltBoot()
+	cltBoot(),
+	isImporting(false)
 {}
 
 ToolManager::~ToolManager()
@@ -146,6 +147,31 @@ void ToolManager::createClient(const QString &name, const QString address, const
 	this->doCreate(name, false, args, config, isAutoStart);
 }
 
+void ToolManager::importInstance()
+{
+	auto file = DialogMaster::getOpenFileName(nullptr,
+											  tr("Import Configuration"),
+											  QString(),
+											  tr("Clipboard-Sync Configuration Files (*.cscfg);;All Files (*)"));
+	if(!file.isNull()) {
+		QFile inFile(file);
+		if(inFile.open(QIODevice::ReadOnly)) {
+			QJsonParseError error;
+			auto doc = QJsonDocument::fromJson(inFile.readAll(), &error);
+			inFile.close();
+			if(error.error == QJsonParseError::NoError) {
+				auto obj = doc.object();
+				this->isImporting = true;
+				this->createFromConfig(obj, false);
+				return;
+			} else
+				DialogMaster::warning(nullptr, tr("Failed to load configuration to file!"));
+		}
+	}
+
+	emit importDone();
+}
+
 void ToolManager::performAction(const QString &name, ToolManager::Actions action)
 {
 	auto proc = this->processes.value(name, nullptr);
@@ -210,6 +236,10 @@ void ToolManager::procStarted()
 
 		if(info.autoStart)
 			this->initNext();
+		if(this->isImporting) {
+			this->isImporting = false;
+			emit importDone();
+		}
 	}
 }
 
@@ -220,6 +250,11 @@ void ToolManager::procErrorOccurred(QProcess::ProcessError error)
 	if(proc && this->isActive(proc)) {
 		emit showMessage(QtMsgType::QtCriticalMsg, this->generateTitle(proc, tr("Error occured!")), proc->errorString());
 		this->remove(proc);
+	}
+
+	if(this->isImporting) {
+		this->isImporting = false;
+		emit importDone();
 	}
 }
 
@@ -234,6 +269,11 @@ void ToolManager::procFinished(int exitCode, QProcess::ExitStatus exitStatus)
 			emit showMessage(QtMsgType::QtInfoMsg, this->generateTitle(proc, tr("Finished!")), tr("The Process was closed!"));
 		emit instanceClosed(this->procName(proc));
 		this->remove(proc);
+	}
+
+	if(this->isImporting) {
+		this->isImporting = false;
+		emit importDone();
 	}
 }
 
@@ -481,6 +521,7 @@ void ToolManager::remove(QProcess *process)
 	this->processes.erase(this->findIter(process));
 	this->procInfos.remove(process);
 	process->deleteLater();
+	this->rewriteAutoSave();
 }
 
 QHash<QString, QProcess*>::ConstIterator ToolManager::findIter(QProcess *process) const

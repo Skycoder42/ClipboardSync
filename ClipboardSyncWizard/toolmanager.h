@@ -62,6 +62,7 @@ public slots:
 					  const QString &certPath,
 					  const QString &certFormat,
 					  bool isAutoStart = false);
+	void importInstance();
 
 	void performAction(const QString &name, Actions action);
 	void removeClient(const QString &serverName, const QString &clientName);
@@ -73,6 +74,8 @@ signals:
 	void instanceClosed(const QString &name);
 	void serverStatusLoaded(const QString &name, ServerInfo serverInfo);
 	void clientStatusLoaded(const QString &name, const QString &serverName);
+
+	void importDone();
 
 	void showMessage(QtMsgType type, const QString &title, const QString &message);
 	void showLog(const QString &name, const QByteArray &log);
@@ -116,6 +119,7 @@ private:
 
 	QJsonArray svrBoot;
 	QJsonArray cltBoot;
+	bool isImporting;
 
 	void rewriteAutoSave();
 	void createFromConfig(const QJsonObject &config, bool isAutoStart);

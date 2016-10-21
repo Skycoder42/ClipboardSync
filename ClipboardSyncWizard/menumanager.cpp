@@ -15,11 +15,13 @@ MenuManager::MenuManager(QSystemTrayIcon *trayIco, QObject *parent) :
 	this->trayIco->setContextMenu(this->menu.data());
 
 	this->menu->addAction(tr("&Add Instance"), qApp, &App::showCreate);
+	this->menu->addAction(tr("&Import Configuration"), this, [this](){
+		this->setCreateEnabled(false);
+		emit doImport();
+	});
 	this->menu->addSection(tr("Servers"));
 	this->postServers = this->menu->addSection(tr("Clients"));
 	this->postClients = this->menu->addSeparator();
-	this->menu->addAction(tr("E&xport Multiple"))->setEnabled(false);
-	this->menu->addSeparator();
 	this->menu->addAction(tr("Start on &boot"))->setEnabled(false);//TODO ->setCheckable(true);
 	this->menu->addAction(tr("&Quit"), qApp, &App::quit);
 }
@@ -27,6 +29,11 @@ MenuManager::MenuManager(QSystemTrayIcon *trayIco, QObject *parent) :
 bool MenuManager::isCreateEnabled() const
 {
 	return this->createEnabled;
+}
+
+void MenuManager::completeImport()
+{
+	this->setCreateEnabled(true);
 }
 
 void MenuManager::addServer(const QString &name, bool fromStartup)
@@ -118,7 +125,8 @@ void MenuManager::setCreateEnabled(bool createEnabled)
 		return;
 
 	this->createEnabled = createEnabled;
-	this->menu->actions().first()->setEnabled(createEnabled);
+	this->menu->actions()[0]->setEnabled(createEnabled);
+	this->menu->actions()[1]->setEnabled(createEnabled);
 	emit createEnabledChanged(createEnabled);
 }
 

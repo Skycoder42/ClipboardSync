@@ -20,6 +20,7 @@ public:
 	bool isCreateEnabled() const;
 
 public slots:
+	void completeImport();
 	void addServer(const QString &name, bool fromStartup);
 	void addClient(const QString &name, bool fromStartup);
 	void removeInstance(const QString &name);
@@ -30,6 +31,7 @@ private slots:
 	void showSetSync(const QString &name);
 
 signals:
+	void doImport();
 	void closeInstance(const QString &name);
 	void performAction(const QString &name, ToolManager::Actions action);
 	void setSyncInterval(const QString &name, int interval);
