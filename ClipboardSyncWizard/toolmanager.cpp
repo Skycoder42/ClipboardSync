@@ -13,6 +13,9 @@
 # ifdef Q_OS_WIN
 #  define SERVER_TOOL QStringLiteral("../ClipboardSyncServer/debug/ClipboardSyncServer")
 #  define CLIENT_TOOL QStringLiteral("../ClipboardSyncClient/debug/ClipboardSyncClient")
+# elif defined(Q_OS_LINUX)
+#  define SERVER_TOOL QStringLiteral("../ClipboardSyncServer/ClipboardSyncServer")
+#  define CLIENT_TOOL QStringLiteral("../ClipboardSyncClient/ClipboardSyncClient")
 # endif
 #endif
 
@@ -462,11 +465,17 @@ void ToolManager::doCreate(const QString &name, bool isServer, const QStringList
 	connect(proc, &QProcess::readyReadStandardError,
 			this, &ToolManager::procErrReady);
 
-#if !defined(QT_NO_DEBUG) && defined(Q_OS_WIN)
+#if !defined(QT_NO_DEBUG)
 	QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+#ifdef O_OS_WIN
 	auto path = env.value(QStringLiteral("PATH"));
 	path.append(QLatin1Char(';') + QDir(QStringLiteral("../ClipboardSyncCore/debug/")).absolutePath());
 	env.insert(QStringLiteral("PATH"), path);
+#elif defined(Q_OS_LINUX)
+	auto path = env.value(QStringLiteral("LD_LIBRARY_PATH"));
+	path.append(QLatin1Char(':') + QDir(QStringLiteral("../ClipboardSyncCore/")).absolutePath());
+	env.insert(QStringLiteral("LD_LIBRARY_PATH"), path);
+#endif
 	proc->setEnvironment(env.toStringList());
 #endif
 
@@ -526,7 +535,7 @@ void ToolManager::remove(QProcess *process)
 
 QHash<QString, QProcess*>::ConstIterator ToolManager::findIter(QProcess *process) const
 {
-	return std::find_if(this->processes.constBegin(), this->processes.constEnd(), [=](auto value){
+	return std::find_if(this->processes.constBegin(), this->processes.constEnd(), [=](QProcess *value){
 		return value == process;
 	});
 }

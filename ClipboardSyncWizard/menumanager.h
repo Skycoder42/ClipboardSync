@@ -6,6 +6,7 @@
 #include <QScopedPointer>
 #include <QAction>
 #include <QPointer>
+#include <QMenu>
 #include "toolmanager.h"
 
 class MenuManager : public QObject

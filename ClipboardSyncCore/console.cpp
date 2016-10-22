@@ -69,7 +69,7 @@ void Console::run()
 	inFile.open(stdin, QIODevice::ReadOnly);
 
 	forever {
-		auto command = inFile.readLine().trimmed();
+		auto command = inFile.readLine().trimmed().toLower();
 		if(command.isEmpty())
 			QThread::msleep(100);
 		else if(this->autoQuit && command == QStringLiteral("exit"))
