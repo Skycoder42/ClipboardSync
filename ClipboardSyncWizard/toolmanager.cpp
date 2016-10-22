@@ -16,6 +16,9 @@
 # elif defined(Q_OS_LINUX)
 #  define SERVER_TOOL QStringLiteral("../ClipboardSyncServer/ClipboardSyncServer")
 #  define CLIENT_TOOL QStringLiteral("../ClipboardSyncClient/ClipboardSyncClient")
+# elif defined(Q_OS_OSX)
+#  define SERVER_TOOL QStringLiteral("../../../../ClipboardSyncServer/ClipboardSyncServer")
+#  define CLIENT_TOOL QStringLiteral("../../../../ClipboardSyncClient/ClipboardSyncClient")
 # endif
 #endif
 
@@ -33,8 +36,11 @@ ToolManager::ToolManager(QObject *parent) :
 
 ToolManager::~ToolManager()
 {
-	foreach (auto proc, this->processes)
-		proc->write("exit\n");
+    this->disconnect();
+    foreach (auto proc, this->processes) {
+        proc->disconnect(this);
+        proc->write("exit\n");
+    }
 
 	auto allowWait = true;
 	foreach (auto proc, this->processes) {
@@ -270,7 +276,6 @@ void ToolManager::procFinished(int exitCode, QProcess::ExitStatus exitStatus)
 			emit showMessage(QtMsgType::QtCriticalMsg, this->generateTitle(proc, tr("Process Crashed!")), proc->errorString());
 		else
 			emit showMessage(QtMsgType::QtInfoMsg, this->generateTitle(proc, tr("Finished!")), tr("The Process was closed!"));
-		emit instanceClosed(this->procName(proc));
 		this->remove(proc);
 	}
 
@@ -470,11 +475,15 @@ void ToolManager::doCreate(const QString &name, bool isServer, const QStringList
 #ifdef O_OS_WIN
 	auto path = env.value(QStringLiteral("PATH"));
 	path.append(QLatin1Char(';') + QDir(QStringLiteral("../ClipboardSyncCore/debug/")).absolutePath());
-	env.insert(QStringLiteral("PATH"), path);
+    env.insert(QStringLiteral("PATH"), path);
 #elif defined(Q_OS_LINUX)
-	auto path = env.value(QStringLiteral("LD_LIBRARY_PATH"));
-	path.append(QLatin1Char(':') + QDir(QStringLiteral("../ClipboardSyncCore/")).absolutePath());
-	env.insert(QStringLiteral("LD_LIBRARY_PATH"), path);
+    auto path = env.value(QStringLiteral("LD_LIBRARY_PATH"));
+    path.append(QLatin1Char(':') + QDir(QStringLiteral("../ClipboardSyncCore/")).absolutePath());
+    env.insert(QStringLiteral("LD_LIBRARY_PATH"), path);
+#elif defined(Q_OS_OSX)
+    auto path = env.value(QStringLiteral("DYLD_LIBRARY_PATH"));
+    path.append(QLatin1Char(':') + QDir(QStringLiteral("../../../../ClipboardSyncCore/")).absolutePath());
+    env.insert(QStringLiteral("DYLD_LIBRARY_PATH"), path);
 #endif
 	proc->setEnvironment(env.toStringList());
 #endif
@@ -527,10 +536,11 @@ bool ToolManager::isActive(QProcess *process) const
 
 void ToolManager::remove(QProcess *process)
 {
+    emit instanceClosed(this->procName(process));
 	this->processes.erase(this->findIter(process));
 	this->procInfos.remove(process);
-	process->deleteLater();
-	this->rewriteAutoSave();
+    process->deleteLater();
+    this->rewriteAutoSave();
 }
 
 QHash<QString, QProcess*>::ConstIterator ToolManager::findIter(QProcess *process) const

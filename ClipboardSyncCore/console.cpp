@@ -8,7 +8,8 @@ QPointer<Console> Console::consoleInstance;
 Console::Console(QObject *parent) :
 	QThread(parent),
 	qOut(new QFile(this)),
-	qErr(new QFile(this))
+    qErr(new QFile(this)),
+    autoQuit(true)
 {
 	connect(this, &Console::finished,
 			qApp, &QCoreApplication::quit,
