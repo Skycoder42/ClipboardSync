@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+	<DisplayName>Microsoft Visual C++ 2015 Redistributable (x64)</DisplayName>
+	<Description>Installs the Visual C++ redistributables for x64</Description>
+	<Version>14.0.24215</Version>
+	<ReleaseDate>2016-10-23</ReleaseDate>
+	<Script>install.js</Script>
+	<Virtual>true</Virtual>
+	<!-- Inverted dependencies to make compatible with all OSes -->
+	<AutoDependOn>com.SkyCoder42.ClipboardSyncCore, com.SkyCoder42.ClipboardSyncServer, com.SkyCoder42.ClipboardSyncClient, com.SkyCoder42.ClipboardSyncWizard</AutoDependOn>
+</Package>

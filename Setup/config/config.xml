@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+	<Name>Clipboard-Sync</Name>
+	<Version>1.0.0</Version>
+	<Title>Clipboard-Sync Installer</Title>
+	<Publisher>Sykcoder42</Publisher>
+	<ProductUrl>https://github.com/Skycoder42/ClipboardSync</ProductUrl>
+	<StartMenuDir>Clipboard-Sync</StartMenuDir>
+	<TargetDir>Clipboard-Sync</TargetDir>
+	<RunProgram>ClipboardSyncWizard</RunProgram>
+	<AllowSpaceInPath>true</AllowSpaceInPath>
+	<AllowNonAsciiCharacters>true</AllowNonAsciiCharacters>
+	<RemoteRepositories>
+		<Repository>
+			<Url>https://install.skycoder42.de/installers/ClipboardSync</Url>
+			<Enabled>1</Enabled>
+			<DisplayName>Clipboard-Sync Online Repository</DisplayName>
+		</Repository>
+	</RemoteRepositories>
+	<ControlScript>controllerScript.js</ControlScript>
+</Installer>
