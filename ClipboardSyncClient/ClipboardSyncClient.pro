@@ -35,9 +35,14 @@ SOURCES += \
     syncclient.cpp \
     clipboardcontroller.cpp
 
+mac:LIBS += -framework AppKit
+
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ClipboardSyncCore/release/ -lClipboardSyncCore
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ClipboardSyncCore/debug/ -lClipboardSyncCore
 else:unix: LIBS += -L$$OUT_PWD/../ClipboardSyncCore/ -lClipboardSyncCore
 
 INCLUDEPATH += $$PWD/../ClipboardSyncCore
 DEPENDPATH += $$PWD/../ClipboardSyncCore
+
+OBJECTIVE_SOURCES += \
+    hidedock.mm
