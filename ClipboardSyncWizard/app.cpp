@@ -3,6 +3,9 @@
 #include <QIcon>
 #include <dialogmaster.h>
 #include "mainwizard.h"
+#ifdef Q_OS_OSX
+#include "dockhidehelper.h"
+#endif
 
 Q_DECLARE_METATYPE(QSsl::EncodingFormat)
 
@@ -137,6 +140,10 @@ void App::showPeers(const QString &name, QStandardItemModel *peerModel)
 
 void App::init()
 {
+#ifdef Q_OS_OSX
+    new DockHideHelper(this);
+#endif
+
 	this->trayIco = new QSystemTrayIcon(windowIcon(), this);
 
 	this->toolManager = new ToolManager(this);

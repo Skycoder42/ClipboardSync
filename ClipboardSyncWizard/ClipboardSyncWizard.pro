@@ -42,7 +42,7 @@ HEADERS  += \
     app.h \
     menumanager.h \
     logdialog.h \
-    peersdialog.h
+	peersdialog.h
 
 SOURCES += intropage.cpp \
     mainwizard.cpp \
@@ -53,7 +53,7 @@ SOURCES += intropage.cpp \
     app.cpp \
     menumanager.cpp \
     logdialog.cpp \
-    peersdialog.cpp
+	peersdialog.cpp
 
 FORMS    += \
     intropage.ui \
@@ -64,4 +64,14 @@ FORMS    += \
     peersdialog.ui
 
 RESOURCES += \
-    ../sync_global_res.qrc
+	../sync_global_res.qrc
+
+mac {
+	HEADERS +=  \
+		dockhidehelper.h
+
+	OBJECTIVE_SOURCES += \
+		dockhidehelper.mm
+
+	LIBS += -framework AppKit
+}
