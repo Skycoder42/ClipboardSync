@@ -472,7 +472,7 @@ void ToolManager::doCreate(const QString &name, bool isServer, const QStringList
 
 #if !defined(QT_NO_DEBUG)
 	QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-#ifdef O_OS_WIN
+#ifdef Q_OS_WIN
 	auto path = env.value(QStringLiteral("PATH"));
 	path.append(QLatin1Char(';') + QDir(QStringLiteral("../ClipboardSyncCore/debug/")).absolutePath());
     env.insert(QStringLiteral("PATH"), path);
