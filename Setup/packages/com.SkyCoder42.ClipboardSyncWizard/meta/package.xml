@@ -8,5 +8,6 @@
 		<License name="MIT License" file="LICENSE.txt" />
 	</Licenses>
 	<SortingPriority>5</SortingPriority>
+	<Dependencies>com.SkyCoder42.ClipboardSyncCore</Dependencies>
 	<Default>true</Default>
 </Package>

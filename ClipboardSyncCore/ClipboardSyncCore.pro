@@ -6,8 +6,19 @@
 
 QT       -= gui
 
-TARGET = ClipboardSyncCore
 TEMPLATE = lib
+
+TARGET = ClipboardSyncCore
+VERSION = 1.0.0
+
+win32 {
+	QMAKE_TARGET_COMPANY = "Skycoder42"
+	QMAKE_TARGET_PRODUCT = "Clipboard-Sync Client"
+	QMAKE_TARGET_DESCRIPTION = $$QMAKE_TARGET_PRODUCT
+	QMAKE_TARGET_COPYRIGHT = "Felix Barz"
+
+	CONFIG += skip_target_version_ext
+}
 
 DEFINES += CLIPBOARDSYNCCORE_LIBRARY
 
